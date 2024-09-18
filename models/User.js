@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 const userSchema = mongoose.Schema({
-  name: {
+  username: {
     type: String,
     required: true,
   },
@@ -27,7 +27,7 @@ const userSchema = mongoose.Schema({
 });
 
 // Mã hóa mật khẩu trước khi lưu vào DB
-userSchema.pre("save", async (next) => {
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }
