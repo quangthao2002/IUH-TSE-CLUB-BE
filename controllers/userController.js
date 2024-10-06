@@ -1,16 +1,18 @@
-const express = require("express");
+// controllers/userController.js
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const { validationResult } = require("express-validator");
 
-const router = express.Router();
-
-// register
-router.post("/register", async (req, res) => {
+// Đăng ký người dùng mới
+exports.registerUser = async (req, res) => {
   const { username, email, phone, password } = req.body;
 
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
-    // Kiểm tra xem user đã tồn tại chưa
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: "User already exists" });
@@ -29,15 +31,19 @@ router.post("/register", async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.json({ message: "Register member success", token });
+    res.json({ message: "Register success", token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
-});
+};
 
-// Login
-router.post("/login", async (req, res) => {
+// Đăng nhập người dùng
+exports.loginUser = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   const { email, password } = req.body;
 
   try {
@@ -60,6 +66,18 @@ router.post("/login", async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
-});
+};
 
-module.exports = router;
+// Lấy thông tin người dùng (profile)
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
