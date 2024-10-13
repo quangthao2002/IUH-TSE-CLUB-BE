@@ -10,9 +10,8 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(express.json()); // Để xử lý dữ liệu JSON
+app.use(express.json()); //
 
-app.use("/api/auth", authRouter);
 app.use("/api/user", userRouters);
 
 app.get("/", (req, res) => {

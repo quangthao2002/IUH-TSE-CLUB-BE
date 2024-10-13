@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 
 // Đăng ký người dùng mới
-exports.registerUser = async (req, res) => {
+const registerUser = async (req, res) => {
   const { username, email, phone, password } = req.body;
 
   const errors = validationResult(req);
@@ -39,7 +39,7 @@ exports.registerUser = async (req, res) => {
 };
 
 // Đăng nhập người dùng
-exports.loginUser = async (req, res) => {
+const loginUser = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -68,8 +68,8 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// Lấy thông tin người dùng (profile)
-exports.getUserProfile = async (req, res) => {
+// Lấy thông tin người dùng đang đăng nhập
+const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user).select("-password");
     if (!user) {
@@ -80,4 +80,152 @@ exports.getUserProfile = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
+};
+// lấy thông tin thanh viên by id
+const getMemberById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Lấy thông tin tất cả thành viên
+
+const getAllMembers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const updateMember = async (req, res) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    }).select("-password");
+    res.json(updatedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const deleteMember = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "Delete success" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const deleteAllMembers = async (req, res) => {
+  try {
+    await User.deleteMany();
+    res.json({ message: "Delete all members success" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const filterMembers = async (req, res) => {
+  const { skill, level } = req.query;
+  try {
+    const query = {};
+    if (skill) query.skill = skill;
+    if (level) query.level = level;
+
+    const filteredUsers = await User.find(query).select("-password");
+    res.json(filteredUsers);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const sortMembers = async (req, res) => {
+  const { sortBy } = req.query;
+  try {
+    const users = await User.find()
+      .sort({ [sortBy]: 1 })
+      .select("-password");
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+// pagination
+const paginationMembers = async (req, res) => {
+  const { page, limit } = req.query;
+  try {
+    const users = await User.find()
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select("-password");
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// search members much field or by name
+const searchMembers = async (req, res) => {
+  const { q, name } = req.query;
+
+  try {
+    let query = {};
+    if (name) {
+      query.username = { $regex: name, $options: "i" };
+    }
+    if (q) {
+      query = {
+        $or: [
+          { username: { $regex: q, $options: "i" } },
+          { email: { $regex: q, $options: "i" } },
+          { phone: { $regex: q, $options: "i" } },
+        ],
+      };
+    }
+    const users = await User.find(query).select("-password");
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+// // search member by name
+// const searchMemberByName = async (req, res) => {
+//   const { name } = req.query;
+//   try {
+//     const users = await User.find({
+//       username: { $regex: name, $options: "i" },
+//     }).select("-password");
+//     res.json(users);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+module.exports = {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  getAllMembers,
+  getMemberById,
+  updateMember,
+  deleteMember,
+  deleteAllMembers,
+  filterMembers,
+  sortMembers,
+  paginationMembers,
+  searchMembers,
 };

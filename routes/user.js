@@ -33,4 +33,22 @@ router.post(
 // Lấy thông tin profile (cần xác thực)
 router.get("/profile", auth, userController.getUserProfile);
 
+// lấy thông tin user by id
+router.get("/member/:id", userController.getMemberById);
+
+// lấy thông tin tất cả user
+router.get("/members", userController.getAllMembers);
+
+// cập nhật thông tin user
+router.put("/member/:id", userController.updateMember);
+
+// xóa user
+router.delete("/member/:id", userController.deleteMember);
+
+// loc member by skill level
+router.get("/members/filter", userController.filterMembers);
+
+// searchMember
+router.get("/members/search", userController.searchMembers);
+
 module.exports = router;
