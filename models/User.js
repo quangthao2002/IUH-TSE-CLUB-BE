@@ -1,30 +1,33 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const userSchema = mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
+const userSchema = mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ["admin", "member", "visitor", "teamLeader"],
+      default: "visitor",
+    },
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
-  role: {
-    type: String,
-    enum: ["admin", "member", "visitor"],
-    default: "visitor",
-  },
-});
+  { timestamp: true }
+);
 
 // Mã hóa mật khẩu trước khi lưu vào DB
 userSchema.pre("save", async function (next) {
