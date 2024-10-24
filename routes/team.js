@@ -1,4 +1,8 @@
+const express = require("express");
+const router = express.Router();
 const { auth, authorize } = require("../middleware/auth");
+
+const teamController = require("../controllers/teamController");
 
 // Đăng ký đội tuyển
 router.post(
@@ -26,3 +30,5 @@ router.put(
 
 // Lọc đội tuyển theo thành tích
 router.get("/teams/filter", auth, teamController.filterTeamsByAchievement);
+
+module.exports = router;

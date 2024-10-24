@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./configs/db.js");
 const authRouter = require("./middleware/auth.js");
 const userRouters = require("./routes/user");
-
+const teamRouter = require("./routes/team");
 dotenv.config();
 
 // Kết nối với MongoDB
