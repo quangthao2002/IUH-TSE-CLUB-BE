@@ -202,6 +202,34 @@ const searchMembers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+// phân quyền cho thành viên
+
+const assignRole = async (req, res) => {
+  const { userId } = req.params; // ID của thành viên cần phân quyền
+  const { role } = req.body; // Vai trò mới (admin, member, teamLeader, visitor)
+
+  try {
+    // Tìm thành viên
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Kiểm tra role hợp lệ
+    const validRoles = ["admin", "member", "visitor", "teamLeader"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    // Cập nhật vai trò của thành viên
+    user.role = role;
+    await user.save();
+
+    res.status(200).json({ message: `Role updated to ${role}`, user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 // // search member by name
 // const searchMemberByName = async (req, res) => {
 //   const { name } = req.query;
@@ -228,4 +256,5 @@ module.exports = {
   sortMembers,
   paginationMembers,
   searchMembers,
+  assignRole,
 };

@@ -17,6 +17,14 @@ const auth = (req, res, next) => {
     res.status(401).json({ message: "Token is not valid" });
   }
 };
-const authorize = (...roles) => {};
+// phân quyền dựa theo vai trò của người dùng
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Permission denied" });
+    }
+    next();
+  };
+};
 
-module.exports = auth;
+module.exports = { auth, authorize };

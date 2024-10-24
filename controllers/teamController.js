@@ -1,8 +1,9 @@
-// teamController.js
 const Team = require("../models/Team");
 const TeamMember = require("../models/TeamMember");
 const Achievement = require("../models/Achievement");
-exports.registerTeam = async (req, res) => {
+
+// đăng ký đội tuyển
+const registerTeam = async (req, res) => {
   const { teamId } = req.body; // Team mà người dùng muốn tham gia
   const memberId = req.user._id; // ID của người dùng hiện tại
 
@@ -30,8 +31,8 @@ exports.registerTeam = async (req, res) => {
   }
 };
 
-// teamController.js
-exports.approveMember = async (req, res) => {
+// Duyệt hoặc từ chối thành viên
+const approveMember = async (req, res) => {
   const { teamId, memberId } = req.params;
   const { action } = req.body; // "approve" hoặc "reject"
 
@@ -61,10 +62,8 @@ exports.approveMember = async (req, res) => {
   }
 };
 
-// teamController.js
-const Achievement = require("../models/Achievement");
-
-exports.updateTeamResults = async (req, res) => {
+// cập nhật kết quả đội  tuyển
+const updateTeamResults = async (req, res) => {
   const { teamId } = req.params;
   const { competitionId, result } = req.body;
 
@@ -84,27 +83,8 @@ exports.updateTeamResults = async (req, res) => {
   }
 };
 
-exports.updateTeamResults = async (req, res) => {
-  const { teamId } = req.params;
-  const { competitionId, result } = req.body;
-
-  try {
-    // Tạo kết quả mới
-    const achievement = new Achievement({
-      competition: competitionId,
-      team: teamId,
-      result: result,
-    });
-
-    await achievement.save();
-
-    res.status(200).json({ message: "Team results updated", achievement });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-// teamController.js
-exports.filterTeamsByAchievement = async (req, res) => {
+// Lọc đội theo thành tích
+const filterTeamsByAchievement = async (req, res) => {
   const { startDate, endDate } = req.query;
 
   try {
@@ -125,4 +105,41 @@ exports.filterTeamsByAchievement = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
+};
+
+const assignTeamMemberRole = async (req, res) => {
+  const { teamId, memberId } = req.params; // teamId và memberId
+  const { role } = req.body; // Vai trò mới (teamLeader hoặc member)
+
+  try {
+    // Tìm thành viên trong đội
+    const teamMember = await TeamMember.findOne({ teamId, memberId });
+    if (!teamMember) {
+      return res.status(404).json({ message: "Team member not found" });
+    }
+
+    // Chỉ cho phép cập nhật thành "teamLeader" hoặc "member"
+    const validRoles = ["teamLeader", "member"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    // Cập nhật vai trò của thành viên trong team
+    teamMember.role = role;
+    await teamMember.save();
+
+    res
+      .status(200)
+      .json({ message: `Team member role updated to ${role}`, teamMember });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+module.exports = {
+  registerTeam,
+  approveMember,
+  updateTeamResults,
+  filterTeamsByAchievement,
+  assignTeamMemberRole,
 };
