@@ -1,9 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./configs/db.js");
-const authRouter = require("./middleware/auth.js");
-const userRouters = require("./routes/user");
-const teamRouter = require("./routes/team");
+const userRouters = require("./routes/userRouter.js");
+const teamRouters = require("./routes/teamRouter.js");
+const competitionRoutes = require("./routes/competitionRouter.js");
+const eventRoutes = require("./routes/eventRoutes.js");
+const equipmentRoutes = require("./routes/equipmentRoutes.js");
 dotenv.config();
 
 // Kết nối với MongoDB
@@ -13,6 +15,10 @@ const app = express();
 app.use(express.json()); //
 
 app.use("/api/user", userRouters);
+app.use("/api/team", teamRouters);
+app.use("/api/competitions", competitionRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/equipment", equipmentRoutes);
 
 app.get("/", (req, res) => {
   res.send("IUH TSE Club API is running");

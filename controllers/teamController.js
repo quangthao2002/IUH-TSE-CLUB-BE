@@ -2,7 +2,47 @@ const Team = require("../models/Team");
 const TeamMember = require("../models/TeamMember");
 const Achievement = require("../models/Achievement");
 
-// đăng ký đội tuyển
+const Competition = require("../models/Competition");
+
+// API cho Admin tạo đội
+const createTeam = async (req, res) => {
+  const { teamName, teamLeader, competitionId } = req.body;
+
+  try {
+    const competition = await Competition.findById(competitionId);
+    if (!competition) {
+      return res.status(404).json({ message: "Competition not found" });
+    }
+
+    const newTeam = new Team({
+      teamName,
+      teamLeader,
+      competitionId,
+      members: [],
+    });
+
+    await newTeam.save();
+
+    res
+      .status(201)
+      .json({ message: "Team created successfully", team: newTeam });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+// Lấy danh sách đội tuyển của một cuộc thi: API này để hiển thị các đội tuyển đã đăng ký tham gia cuộc thi cụ thể.
+const getTeamsByCompetition = async (req, res) => {
+  const { competitionId } = req.params;
+
+  try {
+    const teams = await Team.find({ competitionId }).populate("members");
+    res.status(200).json({ teams });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// đăng ký đội tuyển ở phía member
 const registerTeam = async (req, res) => {
   const { teamId } = req.body; // Team mà người dùng muốn tham gia
   const memberId = req.user._id; // ID của người dùng hiện tại
@@ -142,4 +182,6 @@ module.exports = {
   updateTeamResults,
   filterTeamsByAchievement,
   assignTeamMemberRole,
+  createTeam,
+  getTeamsByCompetition,
 };

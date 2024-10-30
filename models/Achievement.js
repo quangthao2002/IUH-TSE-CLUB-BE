@@ -5,6 +5,8 @@ const achievementSchema = new mongoose.Schema(
     competition: { type: mongoose.Schema.Types.ObjectId, ref: "Competition" },
     team: { type: mongoose.Schema.Types.ObjectId, ref: "Team" },
     result: String,
+    points: Number,
+    date: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
