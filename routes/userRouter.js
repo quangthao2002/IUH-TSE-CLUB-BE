@@ -2,6 +2,10 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
+const eventController = require("../controllers/eventController");
+const trainingController = require("../controllers/trainingController");
+const equipmentController = require("../controllers/equipmentController");
+
 const { auth, authorize } = require("../middleware/auth");
 
 const { check, validationResult } = require("express-validator");
@@ -50,5 +54,25 @@ router.get("/members/filter", userController.filterMembers);
 
 // searchMember
 router.get("/members/search", userController.searchMembers);
+
+// Cập nhật hồ sơ cá nhân
+router.put("/profile", userController.updateUserProfile);
+
+// Đăng ký tham gia event
+router.post("/events/:eventId/register", eventController.registerForEvent);
+
+// Đăng ký làm chủ trì event
+router.post("/events/:eventId/host", eventController.registerHostRequest);
+
+// Đăng ký làm người đào tạo cho khóa sau
+router.post(
+  "/training/:trainingSessionId/trainer",
+  trainingController.registerAsTrainer
+);
+// đăng ký mượn thiết bị
+router.post(
+  "/equipment/:equipmentId/borrow",
+  equipmentController.borrowEquipment
+);
 
 module.exports = router;

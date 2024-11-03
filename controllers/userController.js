@@ -1,8 +1,18 @@
 // controllers/userController.js
 const User = require("../models/User");
+const Event = require("../models/Event");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
+
+const generateAccessToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+};
+
+const generateRefreshToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d",
+  });
+};
 
 // Đăng ký người dùng mới
 const registerUser = async (req, res) => {
@@ -27,11 +37,14 @@ const registerUser = async (req, res) => {
 
     await user.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
-    res.json({ message: "Register success", token });
+    // Lưu refresh token vào cơ sở dữ liệu
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.json({ message: "Register success", accessToken, refreshToken });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -57,11 +70,12 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Lưu refresh token vào cơ sở dữ liệu
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+    user.refreshToken = refreshToken;
 
-    res.json({ message: "Login success", token });
+    res.json({ message: "Login success", accessToken, refreshToken });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -202,6 +216,50 @@ const searchMembers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Cập nhật hồ sơ cá nhân
+// const updateUserProfile = async (req, res) => {
+//   const userId = req.user.id; // Giả định rằng userId được lấy từ token đã xác thực
+//   const { name, email, skills } = req.body;
+
+//   try {
+//     const updatedUser = await User.findByIdAndUpdate(
+//       userId,
+//       { name, email, skills },
+//       { new: true }
+//     );
+//     if (!updatedUser) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+//     res.json({ message: "Profile updated", user: updatedUser });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
+
+// Cập nhật hồ sơ cá nhân
+const updateUserProfile = async (req, res) => {
+  const userId = req.user.id; //userId được lấy từ token đã xác thực
+  const updateFields = req.body;
+
+  try {
+    // Tìm và cập nhật chỉ các trường được cung cấp trong yêu cầu
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 // phân quyền cho thành viên
 
 const assignRole = async (req, res) => {
@@ -226,6 +284,34 @@ const assignRole = async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: `Role updated to ${role}`, user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const registerForEvent = async (req, res) => {
+  const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
+  const { eventId } = req.params;
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    if (event.status !== "active") {
+      return res.status(400).json({ message: "Event is not active" });
+    }
+    if (
+      event.maxParticipants &&
+      event.registeredParticipants.length >= event.maxParticipants
+    ) {
+      return res.status(400).json({ message: "Event is full" });
+    }
+
+    // Thêm thành viên vào danh sách tham gia
+    event.registeredParticipants.push(userId);
+    await event.save();
+    res.json({ message: "Registered for event" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -257,4 +343,6 @@ module.exports = {
   paginationMembers,
   searchMembers,
   assignRole,
+  updateUserProfile,
+  registerForEvent,
 };

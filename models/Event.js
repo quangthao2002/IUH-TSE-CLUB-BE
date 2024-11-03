@@ -14,7 +14,20 @@ const eventSchema = new mongoose.Schema(
     maxParticipants: { type: Number },
     registeredParticipants: [
       { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    ], // Người dùng đã đăng ký
+    ],
+    // Người chủ trì đã được phê duyệt
+    hosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    // Yêu cầu làm chủ trì với trạng thái
+    hostRequests: [
+      {
+        memberId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        status: {
+          type: String,
+          enum: ["pending", "approved", "rejected"],
+          default: "pending",
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -9,7 +9,6 @@ const userSchema = mongoose.Schema(
     },
     codeStudent: {
       type: Number,
-      required: true,
     },
     email: {
       type: String,
@@ -26,26 +25,23 @@ const userSchema = mongoose.Schema(
     },
     address: {
       type: String,
-      required: true,
     },
 
     birthDay: {
       type: Date,
-      required: true,
     },
     level: {
       type: String,
-      required: true,
     },
     skill: {
       type: String,
-      required: true,
     },
     role: {
       type: String,
       enum: ["admin", "member", "visitor", "teamLeader"],
       default: "visitor",
     },
+    refreshToken: { type: String },
   },
   { timestamp: true }
 );

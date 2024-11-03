@@ -13,14 +13,6 @@ router.post(
 );
 router.post("/teams", auth, authorize("admin"), teamController.createTeam);
 
-// Duyệt hoặc từ chối thành viên
-router.patch(
-  "/teams/:teamId/members/:memberId/approve",
-  auth,
-  authorize("admin", "teamLeader"),
-  teamController.approveMember
-);
-
 // Cập nhật kết quả đội tuyển
 router.put(
   "/teams/:teamId/results",

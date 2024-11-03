@@ -1,5 +1,33 @@
 const Equipment = require("../models/Equipment");
 
+// Đăng ký mượn thiết bị
+const borrowEquipment = async (req, res) => {
+  const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
+  const { equipmentId } = req.params;
+  const { returnDate } = req.body;
+
+  try {
+    const equipment = await Equipment.findById(equipmentId);
+    if (!equipment) {
+      return res.status(404).json({ message: "Equipment not found" });
+    }
+    if (equipment.status !== "available" || equipment.available <= 0) {
+      return res.status(400).json({ message: "Equipment is not available" });
+    }
+
+    equipment.status = "in use";
+    equipment.currentBorrower = userId;
+    equipment.borrowDate = new Date();
+    equipment.returnDate = returnDate;
+    equipment.available -= 1;
+    await equipment.save();
+
+    res.json({ message: "Equipment borrowed", equipment });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 // Xem thông tin thiết bị (cho cả admin và user)
 const getEquipment = async (req, res) => {
   try {
@@ -72,4 +100,5 @@ module.exports = {
   createEquipment,
   updateEquipment,
   deleteEquipment,
+  borrowEquipment,
 };
