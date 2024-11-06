@@ -25,7 +25,7 @@ const createTeam = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "Team created successfully", team: newTeam });
+      .json({ message: "Team created successfully", data: newTeam });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -36,7 +36,7 @@ const getTeamsByCompetition = async (req, res) => {
 
   try {
     const teams = await Team.find({ competitionId }).populate("members");
-    res.status(200).json({ teams });
+    res.status(200).json({ message: "Teams found", data: teams });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -63,9 +63,10 @@ const registerTeam = async (req, res) => {
 
     await newTeamMember.save();
 
-    res
-      .status(200)
-      .json({ message: "Registration request sent, waiting for approval" });
+    res.status(200).json({
+      message: "Registration request sent, waiting for approval",
+      data: newTeamMember,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -86,7 +87,9 @@ const updateTeamResults = async (req, res) => {
 
     await achievement.save();
 
-    res.status(200).json({ message: "Team results updated", achievement });
+    res
+      .status(200)
+      .json({ message: "Team results updated", data: achievement });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -110,7 +113,9 @@ const filterTeamsByAchievement = async (req, res) => {
       result: achievement.result,
     }));
 
-    res.status(200).json({ teamsWithAchievements });
+    res
+      .status(200)
+      .json({ message: "Teams found", data: teamsWithAchievements });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -139,7 +144,10 @@ const assignTeamMemberRole = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: `Team member role updated to ${role}`, teamMember });
+      .json({
+        message: `Team member role updated to ${role}`,
+        data: teamMember,
+      });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

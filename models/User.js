@@ -36,6 +36,9 @@ const userSchema = mongoose.Schema(
     skill: {
       type: String,
     },
+    githubId: {
+      type: String,
+    },
     role: {
       type: String,
       enum: ["admin", "member", "visitor", "teamLeader"],

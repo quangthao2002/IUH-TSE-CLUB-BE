@@ -24,7 +24,9 @@ const approveMember = async (req, res) => {
     }
 
     await teamMember.save();
-    res.status(200).json({ message: `Member has been ${action}d` });
+    res
+      .status(200)
+      .json({ message: `Member has been ${action}d`, data: teamMember });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
