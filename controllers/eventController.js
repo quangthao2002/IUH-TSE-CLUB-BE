@@ -23,7 +23,7 @@ const registerForEvent = async (req, res) => {
     // Thêm thành viên vào danh sách tham gia
     event.registeredParticipants.push(userId);
     await event.save();
-    res.json({ message: "Registered for event" });
+    res.json({ message: "Registered for event", data: event });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -38,7 +38,7 @@ const getEvent = async (req, res) => {
         .status(404)
         .json({ message: "Event not found or has been canceled" });
     }
-    res.json(event);
+    res.json({ message: "Event found", event });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -198,7 +198,9 @@ const getHostRequests = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    res.status(200).json({ hostRequests: event.hostRequests });
+    res
+      .status(200)
+      .json({ message: "Host requests found", data: event.hostRequests });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

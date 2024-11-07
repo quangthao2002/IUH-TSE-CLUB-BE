@@ -19,7 +19,10 @@ const refreshAccessToken = async (req, res) => {
           return res.status(403).json({ message: "Refresh token expired" });
 
         const newAccessToken = generateAccessToken(user._id); // Tạo access token mới
-        res.json({ accessToken: newAccessToken });
+        res.json({
+          message: "Access token refreshed",
+          data: newAccessToken,
+        });
       }
     );
   } catch (error) {
