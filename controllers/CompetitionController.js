@@ -14,7 +14,7 @@ const createCompetition = async (req, res) => {
 
     res.status(201).json({
       message: "Competition created successfully",
-      data: newCompetition,
+      data: { newCompetition },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -24,7 +24,7 @@ const createCompetition = async (req, res) => {
 const getAllCompetitions = async (req, res) => {
   try {
     const competitions = await Competition.find();
-    res.json({ message: "Competitions found", data: competitions });
+    res.json({ message: "Competitions found", data: { competitions } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });

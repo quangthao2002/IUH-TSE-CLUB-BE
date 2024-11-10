@@ -25,7 +25,7 @@ const createTeam = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "Team created successfully", data: newTeam });
+      .json({ message: "Team created successfully", data: { newTeam } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -36,7 +36,7 @@ const getTeamsByCompetition = async (req, res) => {
 
   try {
     const teams = await Team.find({ competitionId }).populate("members");
-    res.status(200).json({ message: "Teams found", data: teams });
+    res.status(200).json({ message: "Teams found", data: { teams } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -65,7 +65,7 @@ const registerTeam = async (req, res) => {
 
     res.status(200).json({
       message: "Registration request sent, waiting for approval",
-      data: newTeamMember,
+      data: { newTeamMember },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -89,7 +89,7 @@ const updateTeamResults = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Team results updated", data: achievement });
+      .json({ message: "Team results updated", data: { achievement } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -115,7 +115,7 @@ const filterTeamsByAchievement = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Teams found", data: teamsWithAchievements });
+      .json({ message: "Teams found", data: { teamsWithAchievements } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -142,12 +142,10 @@ const assignTeamMemberRole = async (req, res) => {
     teamMember.role = role;
     await teamMember.save();
 
-    res
-      .status(200)
-      .json({
-        message: `Team member role updated to ${role}`,
-        data: teamMember,
-      });
+    res.status(200).json({
+      message: `Team member role updated to ${role}`,
+      data: { teamMember },
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

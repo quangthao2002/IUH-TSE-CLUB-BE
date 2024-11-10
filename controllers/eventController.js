@@ -23,7 +23,7 @@ const registerForEvent = async (req, res) => {
     // Thêm thành viên vào danh sách tham gia
     event.registeredParticipants.push(userId);
     await event.save();
-    res.json({ message: "Registered for event", data: event });
+    res.json({ message: "Registered for event", data: { event } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

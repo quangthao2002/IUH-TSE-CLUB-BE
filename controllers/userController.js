@@ -92,7 +92,7 @@ const getUserProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json({ message: "Get user profile success", data: user });
+    res.json({ message: "Get user profile success", data: { user } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -106,7 +106,7 @@ const getMemberById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json({ message: "Get user by id success", data: user });
+    res.json({ message: "Get user by id success", data: { user } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -118,7 +118,7 @@ const getMemberById = async (req, res) => {
 const getAllMembers = async (req, res) => {
   try {
     const users = await User.find().select("-password");
-    res.json({ message: "Get all members success", data: users });
+    res.json({ message: "Get all members success", data: { users } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
@@ -129,7 +129,7 @@ const updateMember = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     }).select("-password");
-    res.json({ message: "Update success", data: updatedUser });
+    res.json({ message: "Update success", data: { updatedUser } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -161,7 +161,7 @@ const filterMembers = async (req, res) => {
     if (level) query.level = level;
 
     const filteredUsers = await User.find(query).select("-password");
-    res.json({ message: "Filter success", data: filteredUsers });
+    res.json({ message: "Filter success", data: { filteredUsers } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
@@ -173,7 +173,7 @@ const sortMembers = async (req, res) => {
     const users = await User.find()
       .sort({ [sortBy]: 1 })
       .select("-password");
-    res.json({ message: "Sort success", data: users });
+    res.json({ message: "Sort success", data: { users } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
@@ -187,7 +187,7 @@ const paginationMembers = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .select("-password");
-    res.json({ message: "Pagination success", data: users });
+    res.json({ message: "Pagination success", data: { users } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
@@ -213,7 +213,7 @@ const searchMembers = async (req, res) => {
       };
     }
     const users = await User.find(query).select("-password");
-    res.json({ message: "Search success", data: users });
+    res.json({ message: "Search success", data: { users } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
@@ -286,7 +286,9 @@ const assignRole = async (req, res) => {
     user.role = role;
     await user.save();
 
-    res.status(200).json({ message: `Role updated to ${role}`, data: user });
+    res
+      .status(200)
+      .json({ message: `Role updated to ${role}`, data: { user } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -308,18 +310,16 @@ const registerForEvent = async (req, res) => {
       event.maxParticipants &&
       event.registeredParticipants.length >= event.maxParticipants
     ) {
-      return res
-        .status(400)
-        .json({
-          message: "Event is full",
-          data: event.registeredParticipants.length,
-        });
+      return res.status(400).json({
+        message: "Event is full",
+        data: event.registeredParticipants.length,
+      });
     }
 
     // Thêm thành viên vào danh sách tham gia
     event.registeredParticipants.push(userId);
     await event.save();
-    res.json({ message: "Register for event success", data: event });
+    res.json({ message: "Register for event success", data: { event } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

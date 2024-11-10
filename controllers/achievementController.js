@@ -11,7 +11,9 @@ const createAchievement = async (req, res) => {
 
     await achievement.save();
 
-    res.status(201).json({ message: "Achievement created", data: achievement });
+    res
+      .status(201)
+      .json({ message: "Achievement created", data: { achievement } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

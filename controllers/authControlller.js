@@ -21,7 +21,7 @@ const refreshAccessToken = async (req, res) => {
         const newAccessToken = generateAccessToken(user._id); // Tạo access token mới
         res.json({
           message: "Access token refreshed",
-          data: newAccessToken,
+          data: { newAccessToken },
         });
       }
     );

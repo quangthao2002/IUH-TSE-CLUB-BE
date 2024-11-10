@@ -16,7 +16,7 @@ const registerAsTrainer = async (req, res) => {
 
     session.trainer = userId;
     await session.save();
-    res.json({ message: "Registered as trainer", data: session });
+    res.json({ message: "Registered as trainer", data: { session } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
