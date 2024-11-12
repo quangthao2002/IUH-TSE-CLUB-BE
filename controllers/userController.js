@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Event = require("../models/Event");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
-
+const sendVerificationEmail = require("../utils/sendEmail");
 const generateAccessToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
 };
@@ -36,6 +36,23 @@ const registerUser = async (req, res) => {
     });
 
     await user.save();
+
+    // Tạo token xác thực email
+    const emailToken = jwt.sign(
+      { userId: user._id },
+      process.env.EMAIL_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    // Gửi email xác thực
+    await sendVerificationEmail(user.email, emailToken);
+
+    res.json({
+      message:
+        "Registration successful. Please check your email to verify your account.",
+    });
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);

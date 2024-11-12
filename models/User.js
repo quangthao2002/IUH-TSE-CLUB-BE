@@ -26,12 +26,12 @@ const userSchema = mongoose.Schema(
     address: {
       type: String,
     },
-
+    isVerify: {
+      type: Boolean,
+      default: false,
+    },
     birthDay: {
       type: Date,
-    },
-    level: {
-      type: String,
     },
     skill: {
       type: String,

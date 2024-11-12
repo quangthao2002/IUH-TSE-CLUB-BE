@@ -10,9 +10,9 @@ const teamSchema = new mongoose.Schema(
       required: true, // Đội phải thuộc về một cuộc thi
     },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "TeamMember" }], // Danh sách thành viên trong đội
-    achievements: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "Achievement" },
-    ],
+    // achievements: [
+    //   { type: mongoose.Schema.Types.ObjectId, ref: "Achievement" },
+    // ],
     status: { type: String, enum: ["open", "closed"], default: "open" }, // Trạng thái đội (open: đang hoạt động, closed: đã hoàn thành)
   },
   { timestamps: true }
