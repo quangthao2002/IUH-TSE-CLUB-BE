@@ -38,24 +38,21 @@ const registerUser = async (req, res) => {
     await user.save();
 
     // Tạo token xác thực email
-    // const emailToken = jwt.sign(
-    //   { userId: user._id },
-    //   process.env.EMAIL_SECRET,
-    //   {
-    //     expiresIn: "1h",
-    //   }
-    // );
+    const emailToken = jwt.sign(
+      { userId: user._id },
+      process.env.EMAIL_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     // Gửi email xác thực
-    // await sendVerificationEmail(user.email, emailToken);
+    await sendVerificationEmail(user.email, emailToken);
 
-    // res.json({
-    //   message:
-    //     "Registration successful. Please check your email to verify your account.",
-    // });
-    // res.json({
-    //   message: "Registration successful.",
-    // });
+    res.json({
+      message:
+        "Registration successful. Please check your email to verify your account.",
+    });
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
