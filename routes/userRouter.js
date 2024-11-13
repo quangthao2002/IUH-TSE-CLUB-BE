@@ -33,6 +33,7 @@ router.post(
   ],
   userController.loginUser
 );
+router.post("/logout", userController.logoutUser);
 
 // Lấy thông tin profile (cần xác thực)
 router.get("/profile", auth, userController.getUserProfile);

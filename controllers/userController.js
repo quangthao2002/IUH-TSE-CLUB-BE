@@ -38,21 +38,24 @@ const registerUser = async (req, res) => {
     await user.save();
 
     // Tạo token xác thực email
-    const emailToken = jwt.sign(
-      { userId: user._id },
-      process.env.EMAIL_SECRET,
-      {
-        expiresIn: "1h",
-      }
-    );
+    // const emailToken = jwt.sign(
+    //   { userId: user._id },
+    //   process.env.EMAIL_SECRET,
+    //   {
+    //     expiresIn: "1h",
+    //   }
+    // );
 
     // Gửi email xác thực
-    await sendVerificationEmail(user.email, emailToken);
+    // await sendVerificationEmail(user.email, emailToken);
 
-    res.json({
-      message:
-        "Registration successful. Please check your email to verify your account.",
-    });
+    // res.json({
+    //   message:
+    //     "Registration successful. Please check your email to verify your account.",
+    // });
+    // res.json({
+    //   message: "Registration successful.",
+    // });
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
@@ -96,6 +99,26 @@ const loginUser = async (req, res) => {
     user.refreshToken = refreshToken;
 
     res.json({ message: "Login success", data: { accessToken, refreshToken } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const logoutUser = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    // Tìm user và xóa refreshToken
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.refreshToken = null; // Xóa refresh token
+    await user.save();
+
+    res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -355,6 +378,7 @@ const registerForEvent = async (req, res) => {
 //   }
 // };
 module.exports = {
+  logoutUser,
   registerUser,
   loginUser,
   getUserProfile,

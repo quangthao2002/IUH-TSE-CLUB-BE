@@ -1,22 +1,28 @@
 const nodemailer = require("nodemailer");
 
-const sendVerificationEmail = async (userEmail, token) => {
-  const transporter = nodemailer.createTransport({
-    service: "Gmail", // Hoặc dịch vụ email khác
-    auth: {
-      user: process.env.EMAIL_USER, // Email của bạn
-      pass: process.env.EMAIL_PASSWORD, // Mật khẩu email
-    },
-  });
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false, // dùng `true` nếu bạn sử dụng cổng 465, với Gmail là `false` cho TLS
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  logger: true, // thêm để thấy thông báo log
+  debug: true, // thêm để hiển thị thông báo debug
+});
+
+const sendVerificationEmail = async (email, token) => {
+  const verificationLink = `http://your-website.com/verify?token=${token}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: userEmail,
+    to: email,
     subject: "Email Verification",
-    text: `Please verify your email by clicking on the following link: http://localhost:5000/api/auth/verify-email?token=${token}`,
+    text: `Click this link to verify your email: ${verificationLink}`,
+    html: `<p>Click <a href="${verificationLink}">here</a> to verify your email.</p>`,
   };
 
   await transporter.sendMail(mailOptions);
 };
-
 module.exports = sendVerificationEmail;
