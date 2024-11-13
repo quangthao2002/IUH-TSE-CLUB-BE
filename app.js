@@ -9,6 +9,7 @@ const teamMemberRouters = require("./routes/teamMemberRouter.js");
 const competitionRoutes = require("./routes/competitionRouter.js");
 const eventRoutes = require("./routes/eventRoutes.js");
 const equipmentRoutes = require("./routes/equipmentRoutes.js");
+const cors = require("cors");
 dotenv.config();
 
 // Kết nối với MongoDB
@@ -63,7 +64,9 @@ const app = express();
 //   }
 // );
 
-app.use(express.json()); //
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRouters);
 app.use("/api/user", userRouters);
