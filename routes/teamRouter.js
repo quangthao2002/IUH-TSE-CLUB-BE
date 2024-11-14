@@ -4,6 +4,9 @@ const { auth, authorize } = require("../middleware/auth");
 
 const teamController = require("../controllers/teamController");
 
+// get all teams
+router.get("/", teamController.getAllTeams);
+
 // API cho thành viên đăng ký tham gia đội
 router.post(
   "/teams/register",

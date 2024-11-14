@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const sendVerificationEmail = require("../utils/sendEmail");
 const generateAccessToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1m" });
 };
 
 const generateRefreshToken = (userId) => {
@@ -73,7 +73,6 @@ const loginUser = async (req, res) => {
   //   return res.status(400).json({ errors: errors.array() });
   // }
   const { email, password } = req.body;
-  console.log(email, password);
 
   try {
     const user = await User.findOne({ email });

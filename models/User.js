@@ -49,7 +49,7 @@ const userSchema = mongoose.Schema(
     },
     refreshToken: { type: String },
   },
-  { timestamp: true }
+  { timestamps: true }
 );
 
 // Mã hóa mật khẩu trước khi lưu vào DB

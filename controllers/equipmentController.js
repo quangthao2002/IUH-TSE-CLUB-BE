@@ -1,5 +1,38 @@
 const Equipment = require("../models/Equipment");
 
+const getAllEquipment = async (req, res) => {
+  try {
+    const { q, status, page = 1, limit = 10 } = req.query;
+
+    // Khởi tạo query filter
+    const query = {};
+    if (q) query.name = { $regex: q, $options: "i" }; // Tìm kiếm theo tên
+    if (status) query.status = status; // Lọc theo trạng thái
+
+    // Phân trang
+    const skip = (page - 1) * limit;
+    const totalEquipment = await Equipment.countDocuments(query);
+    const equipment = await Equipment.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    // Trả về kết quả
+    res.json({
+      message: "Equipment fetched successfully",
+      data: {
+        total: totalEquipment,
+        equipment,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalEquipment / limit),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Đăng ký mượn thiết bị
 const borrowEquipment = async (req, res) => {
   const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
@@ -101,4 +134,5 @@ module.exports = {
   updateEquipment,
   deleteEquipment,
   borrowEquipment,
+  getAllEquipment,
 };

@@ -3,6 +3,37 @@ const TeamMember = require("../models/TeamMember");
 const Achievement = require("../models/Achievement");
 
 const Competition = require("../models/Competition");
+const getAllTeams = async (req, res) => {
+  try {
+    const { q, page = 1, limit = 10 } = req.query;
+
+    // Khởi tạo query filter
+    const query = {};
+    if (q) query.name = { $regex: q, $options: "i" }; // Tìm kiếm theo tên
+
+    // Phân trang
+    const skip = (page - 1) * limit;
+    const totalTeams = await Team.countDocuments(query);
+    const teams = await Team.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    // Trả về kết quả
+    res.json({
+      message: "Teams fetched successfully",
+      data: {
+        total: totalTeams,
+        teams,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalTeams / limit),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // API cho Admin tạo đội
 const createTeam = async (req, res) => {
@@ -158,4 +189,5 @@ module.exports = {
   assignTeamMemberRole,
   createTeam,
   getTeamsByCompetition,
+  getAllTeams,
 };

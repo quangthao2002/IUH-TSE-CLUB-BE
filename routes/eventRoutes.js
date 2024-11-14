@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const eventController = require("../controllers/eventController");
 
+router.get("/", eventController.getAllEvents); // Lấy danh sách sự kiện
 router.get("/:id", eventController.getEvent); // Xem sự kiện
 router.post("/", eventController.createEvent); // Đăng sự kiện (admin)
 router.put("/:id", eventController.updateEvent); // Cập nhật sự kiện (admin)

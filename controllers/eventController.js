@@ -1,5 +1,38 @@
 const Event = require("../models/Event");
 
+const getAllEvents = async (req, res) => {
+  try {
+    const { q, category, page = 1, limit = 10 } = req.query; // Các tham số query
+
+    // Khởi tạo truy vấn
+    const query = {};
+    if (category) query.category = category; // Lọc theo category
+    if (q) query.name = { $regex: q, $options: "i" }; // Tìm kiếm theo tên
+
+    // Phân trang
+    const skip = (page - 1) * limit;
+    const totalEvents = await Event.countDocuments(query);
+    const events = await Event.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 }); // Sắp xếp theo thời gian
+
+    // Trả về kết quả
+    res.json({
+      message: "Events fetched successfully",
+      data: {
+        total: totalEvents,
+        events,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalEvents / limit),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Đăng ký tham gia sự kiện
 const registerForEvent = async (req, res) => {
   const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
@@ -215,4 +248,5 @@ module.exports = {
   registerHostRequest,
   approveHostRequest,
   getHostRequests,
+  getAllEvents,
 };

@@ -9,7 +9,10 @@ const getCountDashboard = async (req, res) => {
     const teams = await Team.find().countDocuments();
     const events = await Event.find().countDocuments();
     const equipments = await Equipment.find().countDocuments();
-    res.json({ users, teams, events, equipments });
+    res.json({
+      message: "Dashboard fetched successfully",
+      data: { users, teams, events, equipments },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
