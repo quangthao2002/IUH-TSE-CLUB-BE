@@ -36,6 +36,9 @@ const userSchema = mongoose.Schema(
     skill: {
       type: String,
     },
+    level: {
+      type: String,
+    },
     githubId: {
       type: String,
     },

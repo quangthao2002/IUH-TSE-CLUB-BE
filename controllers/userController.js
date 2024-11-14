@@ -203,27 +203,49 @@ const filterMembers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-const sortMembers = async (req, res) => {
-  const { sortBy } = req.query;
+
+const filterAndSearchMembers = async (req, res) => {
+  const { skill, level, q, page = 1, limit = 10 } = req.query;
+
   try {
-    const users = await User.find()
-      .sort({ [sortBy]: 1 })
-      .select("-password");
-    res.json({ message: "Sort success", data: { users } });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-// pagination
-const paginationMembers = async (req, res) => {
-  const { page, limit } = req.query;
-  try {
-    const users = await User.find()
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select("-password");
-    res.json({ message: "Pagination success", data: { users } });
+    let query = {};
+
+    // Áp dụng bộ lọc
+    if (skill) query.skill = skill;
+    if (level) query.level = level;
+
+    // Tìm kiếm từ khóa
+    if (q) {
+      query.$or = [
+        { username: { $regex: q, $options: "i" } },
+        { email: { $regex: q, $options: "i" } },
+        { phone: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    // Phân trang
+    const skip = (page - 1) * limit;
+    const filteredAndSearchedUsers = await User.find(query)
+      .select("-password")
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Đếm tổng số kết quả để xác định tổng số trang
+    const totalResults = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalResults / limit);
+
+    res.json({
+      message: "Filter and search success",
+      data: {
+        users: filteredAndSearchedUsers,
+        pagination: {
+          totalResults,
+          totalPages,
+          currentPage: parseInt(page),
+          limit: parseInt(limit),
+        },
+      },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
@@ -250,6 +272,32 @@ const searchMembers = async (req, res) => {
     }
     const users = await User.find(query).select("-password");
     res.json({ message: "Search success", data: { users } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const sortMembers = async (req, res) => {
+  const { sortBy } = req.query;
+  try {
+    const users = await User.find()
+      .sort({ [sortBy]: 1 })
+      .select("-password");
+    res.json({ message: "Sort success", data: { users } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+// pagination
+const paginationMembers = async (req, res) => {
+  const { page, limit } = req.query;
+  try {
+    const users = await User.find()
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select("-password");
+    res.json({ message: "Pagination success", data: { users } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
@@ -390,4 +438,5 @@ module.exports = {
   assignRole,
   updateUserProfile,
   registerForEvent,
+  filterAndSearchMembers,
 };

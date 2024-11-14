@@ -35,8 +35,8 @@ router.get("/profile", auth, userController.getUserProfile);
 router.get("/member/:id", userController.getMemberById);
 
 // lấy thông tin tất cả user
-router.get("/members", userController.getAllMembers);
-
+// router.get("/members", userController.getAllMembers);
+router.get("/members", userController.filterAndSearchMembers);
 // cập nhật thông tin user
 router.put("/member/:id", userController.updateMember);
 
