@@ -13,26 +13,19 @@ const { check, validationResult } = require("express-validator");
 // Đăng ký
 router.post(
   "/register",
-  [
-    check("username", "user name is require").not().isEmpty(),
-    check("email", "Please include a valid email").isEmail(),
-    check("phone", "Phone number must be valid").isMobilePhone(),
-    check("password", "Password must be at least 6 characters").isLength({
-      min: 6,
-    }),
-  ],
+  // [
+  //   check("username", "user name is require").not().isEmpty(),
+  //   check("email", "Please include a valid email").isEmail(),
+  //   check("phone", "Phone number must be valid").isMobilePhone(),
+  //   check("password", "Password must be at least 6 characters").isLength({
+  //     min: 6,
+  //   }),
+  // ],
   userController.registerUser
 );
 
 // Đăng nhập
-router.post(
-  "/login",
-  [
-    check("email", "Please include a valid email").isEmail(),
-    check("password", "Password is required").exists(),
-  ],
-  userController.loginUser
-);
+router.post("/login", userController.loginUser);
 router.post("/logout", userController.logoutUser);
 
 // Lấy thông tin profile (cần xác thực)

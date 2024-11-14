@@ -73,11 +73,12 @@ const registerUser = async (req, res) => {
 
 // Đăng nhập người dùng
 const loginUser = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  // const errors = validationResult(req);
+  // if (!errors.isEmpty()) {
+  //   return res.status(400).json({ errors: errors.array() });
+  // }
   const { email, password } = req.body;
+  console.log(email, password);
 
   try {
     const user = await User.findOne({ email });

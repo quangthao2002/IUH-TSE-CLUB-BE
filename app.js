@@ -10,6 +10,7 @@ const competitionRoutes = require("./routes/competitionRouter.js");
 const eventRoutes = require("./routes/eventRoutes.js");
 const equipmentRoutes = require("./routes/equipmentRoutes.js");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 dotenv.config();
 
 // Khởi tạo ứng dụng Express
@@ -17,8 +18,8 @@ const app = express();
 
 connectDB();
 
-app.use(express.json()); //
 app.use(cors());
+app.use(express.json()); //
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRouters);
