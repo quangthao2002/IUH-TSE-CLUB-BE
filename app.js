@@ -9,6 +9,7 @@ const teamMemberRouters = require("./routes/teamMemberRouter.js");
 const competitionRoutes = require("./routes/competitionRouter.js");
 const eventRoutes = require("./routes/eventRoutes.js");
 const equipmentRoutes = require("./routes/equipmentRoutes.js");
+const dashboardRoutes = require("./routes/dashboardRouter.js");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 dotenv.config();
@@ -30,6 +31,7 @@ app.use("/api/team-member", teamMemberRouters);
 app.use("/api/competitions", competitionRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/equipment", equipmentRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Route mặc định
 app.get("/", (req, res) => {
