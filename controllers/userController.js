@@ -18,10 +18,10 @@ const generateRefreshToken = (userId) => {
 const registerUser = async (req, res) => {
   const { username, email, phone, password } = req.body;
 
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  // const errors = validationResult(req);
+  // if (!errors.isEmpty()) {
+  //   return res.status(400).json({ errors: errors.array() });
+  // }
   try {
     let user = await User.findOne({ email });
     if (user) {
@@ -38,21 +38,16 @@ const registerUser = async (req, res) => {
     await user.save();
 
     // Tạo token xác thực email
-    const emailToken = jwt.sign(
-      { userId: user._id },
-      process.env.EMAIL_SECRET,
-      {
-        expiresIn: "1h",
-      }
-    );
+    // const emailToken = jwt.sign(
+    //   { userId: user._id },
+    //   process.env.EMAIL_SECRET,
+    //   {
+    //     expiresIn: "1h",
+    //   }
+    // );
 
-    // Gửi email xác thực
-    await sendVerificationEmail(user.email, emailToken);
-
-    res.json({
-      message:
-        "Registration successful. Please check your email to verify your account.",
-    });
+    // // Gửi email xác thực
+    // await sendVerificationEmail(user.email, emailToken);
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
@@ -96,7 +91,10 @@ const loginUser = async (req, res) => {
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
 
-    res.json({ message: "Login success", data: { token: { accessToken, refreshToken }, user } });
+    res.json({
+      message: "Login success",
+      data: { token: { accessToken, refreshToken }, user },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -324,7 +322,9 @@ const assignRole = async (req, res) => {
     user.role = role;
     await user.save();
 
-    res.status(200).json({ message: `Role updated to ${role}`, data: { user } });
+    res
+      .status(200)
+      .json({ message: `Role updated to ${role}`, data: { user } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -342,7 +342,10 @@ const registerForEvent = async (req, res) => {
     if (event.status !== "active") {
       return res.status(400).json({ message: "Event is not active" });
     }
-    if (event.maxParticipants && event.registeredParticipants.length >= event.maxParticipants) {
+    if (
+      event.maxParticipants &&
+      event.registeredParticipants.length >= event.maxParticipants
+    ) {
       return res.status(400).json({
         message: "Event is full",
         data: event.registeredParticipants.length,
