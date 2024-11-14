@@ -96,7 +96,7 @@ const loginUser = async (req, res) => {
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
 
-    res.json({ message: "Login success", data: { accessToken, refreshToken } });
+    res.json({ message: "Login success", data: { token: { accessToken, refreshToken }, user } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -324,9 +324,7 @@ const assignRole = async (req, res) => {
     user.role = role;
     await user.save();
 
-    res
-      .status(200)
-      .json({ message: `Role updated to ${role}`, data: { user } });
+    res.status(200).json({ message: `Role updated to ${role}`, data: { user } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -344,10 +342,7 @@ const registerForEvent = async (req, res) => {
     if (event.status !== "active") {
       return res.status(400).json({ message: "Event is not active" });
     }
-    if (
-      event.maxParticipants &&
-      event.registeredParticipants.length >= event.maxParticipants
-    ) {
+    if (event.maxParticipants && event.registeredParticipants.length >= event.maxParticipants) {
       return res.status(400).json({
         message: "Event is full",
         data: event.registeredParticipants.length,
