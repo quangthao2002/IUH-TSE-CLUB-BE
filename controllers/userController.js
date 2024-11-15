@@ -90,6 +90,7 @@ const loginUser = async (req, res) => {
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
+    await user.save();
 
     res.json({
       message: "Login success",

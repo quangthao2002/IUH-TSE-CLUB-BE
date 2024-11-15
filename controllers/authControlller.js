@@ -1,4 +1,15 @@
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
+
+const generateAccessToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1m" });
+};
+
+const generateRefreshToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d",
+  });
+};
 //Khi token hết hạn, người dùng sẽ gọi API này để lấy access token mới.
 const refreshAccessToken = async (req, res) => {
   const { refreshToken } = req.body;
@@ -19,9 +30,10 @@ const refreshAccessToken = async (req, res) => {
           return res.status(403).json({ message: "Refresh token expired" });
 
         const newAccessToken = generateAccessToken(user._id); // Tạo access token mới
+        const newRefreshToken = generateRefreshToken(user._id); // Tạo refresh token mới
         res.json({
           message: "Access token refreshed",
-          data: { newAccessToken },
+          data: { accessToken: newAccessToken, refreshToken: newRefreshToken },
         });
       }
     );
