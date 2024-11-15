@@ -16,7 +16,7 @@ const generateRefreshToken = (userId) => {
 
 // Đăng ký người dùng mới
 const registerUser = async (req, res) => {
-  const { username, email, phone, password } = req.body;
+  const { username, email, phone, codeStudent, password } = req.body;
 
   // const errors = validationResult(req);
   // if (!errors.isEmpty()) {
@@ -32,6 +32,7 @@ const registerUser = async (req, res) => {
       username,
       email,
       phone,
+      codeStudent,
       password,
     });
 
