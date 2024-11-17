@@ -19,6 +19,11 @@ const equipmentSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending", // Mặc định là "pending" khi chưa duyệt
     },
+    deviceStatus: {
+      type: String,
+      enum: ["Bình thường", "Trung Bình", "Tốt"],
+      default: "good",
+    },
   },
   { timestamps: true }
 );

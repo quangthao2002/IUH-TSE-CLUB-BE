@@ -34,7 +34,7 @@ const registerUser = async (req, res) => {
 
     res.json({
       message: "Register success",
-      data: { accessToken, refreshToken },
+      data: { accessToken, refreshToken, user },
     });
   } catch (error) {
     console.error(error);
@@ -62,7 +62,7 @@ const loginUser = async (req, res) => {
 
     res.json({
       message: "Login successful",
-      data: { accessToken, refreshToken },
+      data: { accessToken, refreshToken, user },
     });
   } catch (error) {
     console.error(error);
