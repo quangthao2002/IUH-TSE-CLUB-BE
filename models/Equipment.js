@@ -14,6 +14,11 @@ const equipmentSchema = new mongoose.Schema(
     currentBorrower: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     borrowDate: { type: Date },
     returnDate: { type: Date },
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending", // Mặc định là "pending" khi chưa duyệt
+    },
   },
   { timestamps: true }
 );

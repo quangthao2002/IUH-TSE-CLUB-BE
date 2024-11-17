@@ -47,6 +47,11 @@ const borrowEquipment = async (req, res) => {
     if (equipment.status !== "available" || equipment.available <= 0) {
       return res.status(400).json({ message: "Equipment is not available" });
     }
+    if (equipment.approvalStatus !== "approved") {
+      return res
+        .status(400)
+        .json({ message: "Equipment request not approved yet" });
+    }
 
     equipment.status = "in use";
     equipment.currentBorrower = userId;
@@ -56,6 +61,39 @@ const borrowEquipment = async (req, res) => {
     await equipment.save();
 
     res.json({ message: "Equipment borrowed", data: { equipment } });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const approveBorrowRequest = async (req, res) => {
+  const { equipmentId, action } = req.body; // action có thể là "approve" hoặc "reject"
+
+  if (!["approve", "reject"].includes(action)) {
+    return res.status(400).json({ message: "Invalid action" });
+  }
+
+  try {
+    // Tìm thiết bị theo ID
+    const equipment = await Equipment.findById(equipmentId);
+    if (!equipment) {
+      return res.status(404).json({ message: "Equipment not found" });
+    }
+
+    // Chỉ Admin mới có thể phê duyệt yêu cầu mượn
+    if (action === "approve") {
+      equipment.approvalStatus = "approved"; // Phê duyệt yêu cầu mượn
+    } else {
+      equipment.approvalStatus = "rejected"; // Từ chối yêu cầu mượn
+    }
+
+    // Lưu thay đổi vào database
+    await equipment.save();
+
+    res.json({
+      message: `Equipment ${action}d successfully`,
+      data: { equipment },
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -134,4 +172,5 @@ module.exports = {
   deleteEquipment,
   borrowEquipment,
   getAllEquipment,
+  approveBorrowRequest,
 };

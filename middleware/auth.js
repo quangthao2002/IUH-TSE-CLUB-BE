@@ -1,7 +1,9 @@
 // middleware/auth.js
 const jwt = require("jsonwebtoken");
 
-const auth = (req, res, next) => {
+const User = require("../models/User");
+
+const auth = async (req, res, next) => {
   const token = req.header("Authorization");
 
   if (!token) {
@@ -11,13 +13,12 @@ const auth = (req, res, next) => {
   try {
     const tokenValue = token.split(" ")[1];
     const decoded = jwt.verify(tokenValue, process.env.JWT_SECRET);
-    req.user = decoded.id;
+    req.user = await User.findById(decoded.id).select("-password");
     next();
   } catch (error) {
     res.status(401).json({ message: "Token is not valid" });
   }
 };
-// phân quyền dựa theo vai trò của người dùng
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
 
     await user.save();
 
-    const accessToken = generateAccessToken(user._id);
+    const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = await generateRefreshToken(user._id);
 
     res.json({
@@ -57,7 +57,7 @@ const loginUser = async (req, res) => {
     }
 
     // Tạo token
-    const accessToken = generateAccessToken(user._id);
+    const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = await generateRefreshToken(user._id);
 
     res.json({

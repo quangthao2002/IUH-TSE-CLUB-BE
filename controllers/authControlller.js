@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
 const RefreshToken = require("../models/RefreshToken");
 
-const generateAccessToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const generateAccessToken = (userId, roleUser) => {
+  return jwt.sign({ id: userId, role: roleUser }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 };
 
 const generateRefreshToken = async (userId) => {
