@@ -7,9 +7,6 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    codeStudent: {
-      type: Number,
-    },
     email: {
       type: String,
       required: true,
@@ -32,6 +29,9 @@ const userSchema = mongoose.Schema(
     },
     birthDay: {
       type: Date,
+    },
+    level: {
+      type: String,
     },
     skill: {
       type: String,
