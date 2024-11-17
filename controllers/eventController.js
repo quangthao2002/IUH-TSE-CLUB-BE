@@ -77,10 +77,16 @@ const getEvent = async (req, res) => {
   }
 };
 
-// Đăng thông tin sự kiện (admin)
+// Đăng thông tin sự kiện
 const createEvent = async (req, res) => {
+  const userId = req.user.id; // Lấy ID từ token
+  const userRole = req.user.role; // Lấy vai trò từ token
   const { eventName, location, description, eventDate, maxParticipants } =
     req.body;
+
+  const statusRequest = userRole === "admin" ? "approved" : "pending";
+  const statusEvent = userRole === "admin" ? "upcoming" : undefined;
+
   try {
     const newEvent = new Event({
       eventName,
@@ -88,9 +94,15 @@ const createEvent = async (req, res) => {
       description,
       eventDate,
       maxParticipants,
+      host: userId,
+      statusRequest,
+      ...(statusEvent && { statusEvent }),
     });
     await newEvent.save();
-    res.status(201).json({ message: "Event created", event: newEvent });
+
+    res
+      .status(201)
+      .json({ message: "Event created successfully", event: newEvent });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

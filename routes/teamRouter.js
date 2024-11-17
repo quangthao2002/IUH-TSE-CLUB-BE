@@ -26,6 +26,6 @@ router.put(
 
 // Lọc đội tuyển theo thành tích
 router.get("/teams/filter", auth, teamController.filterTeamsByAchievement);
-router.get("/competition/:competitionId", teamController.getTeamsByCompetition);
+// router.get("/competition/:competitionId", teamController.getTeamsByCompetition);
 
 module.exports = router;

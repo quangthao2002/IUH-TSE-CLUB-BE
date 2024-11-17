@@ -6,28 +6,21 @@ const eventSchema = new mongoose.Schema(
     location: { type: String, required: true },
     description: { type: String },
     eventDate: { type: Date, required: true },
-    status: {
+    statusEvent: {
       type: String,
-      enum: ["active", "canceled", "postponed"],
-      default: "active",
+      enum: ["upcoming", "passed", "cancelled"],
+      default: "upcoming",
+    },
+    statusRequest: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
     maxParticipants: { type: Number },
     registeredParticipants: [
       { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     ],
-    // Người chủ trì đã được phê duyệt
-    hosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    // Yêu cầu làm chủ trì với trạng thái
-    hostRequests: [
-      {
-        memberId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        status: {
-          type: String,
-          enum: ["pending", "approved", "rejected"],
-          default: "pending",
-        },
-      },
-    ],
+    host: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );

@@ -75,11 +75,9 @@ const approveBorrowRequest = async (req, res) => {
       return res.status(404).json({ message: "Equipment not found" });
     }
     if (equipment.approvalStatus !== "pending") {
-      return res
-        .status(400)
-        .json({
-          message: "Borrow request is not pending or already processed",
-        });
+      return res.status(400).json({
+        message: "Borrow request is not pending or already processed",
+      });
     }
 
     if (action === "approve") {
@@ -106,6 +104,7 @@ const approveBorrowRequest = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
+  gfv;
 };
 
 // Xem thông tin thiết bị (cho cả admin và user)
