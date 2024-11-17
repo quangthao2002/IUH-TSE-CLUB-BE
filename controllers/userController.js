@@ -4,24 +4,15 @@ const Event = require("../models/Event");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const sendVerificationEmail = require("../utils/sendEmail");
-const generateAccessToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1m" });
-};
-
-const generateRefreshToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "7d",
-  });
-};
+const RefreshToken = require("../models/RefreshToken");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../controllers/authControlller");
 
 // Đăng ký người dùng mới
 const registerUser = async (req, res) => {
   const { username, email, phone, codeStudent, password } = req.body;
-
-  // const errors = validationResult(req);
-  // if (!errors.isEmpty()) {
-  //   return res.status(400).json({ errors: errors.array() });
-  // }
   try {
     let user = await User.findOne({ email });
     if (user) {
@@ -38,24 +29,8 @@ const registerUser = async (req, res) => {
 
     await user.save();
 
-    // Tạo token xác thực email
-    // const emailToken = jwt.sign(
-    //   { userId: user._id },
-    //   process.env.EMAIL_SECRET,
-    //   {
-    //     expiresIn: "1h",
-    //   }
-    // );
-
-    // // Gửi email xác thực
-    // await sendVerificationEmail(user.email, emailToken);
-
     const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-
-    // Lưu refresh token vào cơ sở dữ liệu
-    user.refreshToken = refreshToken;
-    await user.save();
+    const refreshToken = await generateRefreshToken(user._id);
 
     res.json({
       message: "Register success",
@@ -67,12 +42,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Đăng nhập người dùng
 const loginUser = async (req, res) => {
-  // const errors = validationResult(req);
-  // if (!errors.isEmpty()) {
-  //   return res.status(400).json({ errors: errors.array() });
-  // }
   const { email, password } = req.body;
 
   try {
@@ -86,36 +56,25 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Lưu refresh token vào cơ sở dữ liệu
+    // Tạo token
     const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-    user.refreshToken = refreshToken;
-    await user.save();
+    const refreshToken = await generateRefreshToken(user._id);
 
     res.json({
-      message: "Login success",
-      data: { token: { accessToken, refreshToken }, user },
+      message: "Login successful",
+      data: { accessToken, refreshToken },
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
-
 const logoutUser = async (req, res) => {
-  const { userId } = req.body;
+  const { refreshToken } = req.body;
 
   try {
-    // Tìm user và xóa refreshToken
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    user.refreshToken = null; // Xóa refresh token
-    await user.save();
-
-    res.json({ message: "Logged out successfully" });
+    await RefreshToken.deleteOne({ token: refreshToken });
+    res.json({ message: "Logout successful" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

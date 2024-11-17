@@ -39,6 +39,9 @@ const userSchema = mongoose.Schema(
     level: {
       type: String,
     },
+    forte: {
+      type: Array,
+    },
     githubId: {
       type: String,
     },
@@ -47,7 +50,6 @@ const userSchema = mongoose.Schema(
       enum: ["admin", "member", "visitor", "teamLeader"],
       default: "visitor",
     },
-    refreshToken: { type: String },
   },
   { timestamps: true }
 );

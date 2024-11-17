@@ -98,12 +98,11 @@ const createEquipment = async (req, res) => {
 // Cập nhật thông tin thiết bị (admin)
 const updateEquipment = async (req, res) => {
   const { id } = req.params;
-  const { quantity, status, currentBorrower, borrowDate, returnDate } =
-    req.body;
+  const { quantity, status } = req.body;
   try {
     const equipment = await Equipment.findByIdAndUpdate(
       id,
-      { quantity, status, currentBorrower, borrowDate, returnDate },
+      { quantity, status },
       { new: true }
     );
     if (!equipment) {
