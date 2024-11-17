@@ -12,7 +12,7 @@ const {
 
 // Đăng ký người dùng mới
 const registerUser = async (req, res) => {
-  const { username, email, phone, codeStudent, password } = req.body;
+  const { username, email, phone, level, password } = req.body;
   try {
     let user = await User.findOne({ email });
     if (user) {
@@ -23,7 +23,7 @@ const registerUser = async (req, res) => {
       username,
       email,
       phone,
-      codeStudent,
+      level,
       password,
     });
 
