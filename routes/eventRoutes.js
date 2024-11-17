@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const eventController = require("../controllers/eventController");
+const { auth, authorize } = require("../middleware/auth");
 
 router.get("/", eventController.getAllEvents); // Lấy danh sách sự kiện
+router.post("/", auth, eventController.createEvent); // Đăng sự kiện
 router.get("/:id", eventController.getEvent); // Xem sự kiện
-router.post("/", eventController.createEvent); // Đăng sự kiện
 router.put("/:id", eventController.updateEvent); // Cập nhật sự kiện (admin)
 router.patch("/:id/cancel", eventController.cancelEvent); // Hủy sự kiện (admin)
 
