@@ -106,6 +106,30 @@ const deleteTeam = async (req, res) => {
   }
 };
 
+const getTeamById = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy teamId từ URL parameters
+
+    // Tìm đội tuyển theo ID
+    const team = await Team.findById(id)
+      .populate("teamLeader", "username email") // Lấy thông tin đội trưởng
+      .populate("members", "username email"); // Lấy thông tin các thành viên trong đội
+
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Trả về thông tin đội tuyển
+    res.json({
+      message: "Team fetched successfully",
+      data: team,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 // API MEMBER
 const requestJoinTeam = async (req, res) => {
   const { teamId } = req.params;
@@ -158,7 +182,7 @@ const leaveTeam = async (req, res) => {
   }
 };
 
-// xem dánh ac
+// xem danh sach  đội tuyển mở
 const getOpenTeams = async (req, res) => {
   try {
     const openTeams = await Team.find({ status: "open" })
@@ -175,18 +199,18 @@ const getOpenTeams = async (req, res) => {
   }
 };
 
-const getTeamById = async (req, res) => {
+const getMyRequests = async (req, res) => {
+  const memberId = req.user.id;
+
   try {
-    const team = await Team.findById(req.params.id)
-      .populate("teamLeader", "name email")
-      .populate("members", "name email")
-      .populate("projects");
+    const requests = await TeamMember.find({ memberId })
+      .populate("teamId", "teamName status")
+      .exec();
 
-    if (!team) {
-      return res.status(404).json({ message: "Team not found" });
-    }
-
-    res.json({ message: "Team details fetched successfully", team });
+    res.status(200).json({
+      message: "Your requests fetched successfully",
+      requests,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error });
@@ -223,90 +247,42 @@ const registerTeam = async (req, res) => {
   }
 };
 
-// cập nhật kết quả đội  tuyển
-const updateTeamResults = async (req, res) => {
-  const { teamId } = req.params;
-  const { competitionId, result } = req.body;
+const updateTeam = async (req, res) => {
+  const { teamId } = req.params; // Lấy teamId từ tham số URL
+  const updateData = req.body; // Dữ liệu cập nhật từ body request
 
   try {
-    // Tạo kết quả mới
-    const achievement = new Achievement({
-      competition: competitionId,
-      team: teamId,
-      result: result,
+    // Kiểm tra xem team có tồn tại không
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Cập nhật thông tin team
+    const updatedTeam = await Team.findByIdAndUpdate(teamId, updateData, {
+      new: true, // Trả về team đã được cập nhật
     });
-
-    await achievement.save();
-
-    res
-      .status(200)
-      .json({ message: "Team results updated", data: { achievement } });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-
-// Lọc đội theo thành tích
-const filterTeamsByAchievement = async (req, res) => {
-  const { startDate, endDate } = req.query;
-
-  try {
-    const achievements = await Achievement.find({
-      createdAt: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      },
-    }).populate("team competition");
-
-    const teamsWithAchievements = achievements.map((achievement) => ({
-      team: achievement.team.teamName,
-      competition: achievement.competition.competitionName,
-      result: achievement.result,
-    }));
-
-    res
-      .status(200)
-      .json({ message: "Teams found", data: { teamsWithAchievements } });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-
-const assignTeamMemberRole = async (req, res) => {
-  const { teamId, memberId } = req.params; // teamId và memberId
-  const { role } = req.body; // Vai trò mới (teamLeader hoặc member)
-
-  try {
-    // Tìm thành viên trong đội
-    const teamMember = await TeamMember.findOne({ teamId, memberId });
-    if (!teamMember) {
-      return res.status(404).json({ message: "Team member not found" });
-    }
-
-    // Chỉ cho phép cập nhật thành "teamLeader" hoặc "member"
-    const validRoles = ["teamLeader", "member"];
-    if (!validRoles.includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-
-    // Cập nhật vai trò của thành viên trong team
-    teamMember.role = role;
-    await teamMember.save();
 
     res.status(200).json({
-      message: `Team member role updated to ${role}`,
-      data: { teamMember },
+      message: "Team updated successfully",
+      team: updatedTeam,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error", error });
   }
 };
 
 module.exports = {
   registerTeam,
-  updateTeamResults,
-  filterTeamsByAchievement,
-  assignTeamMemberRole,
+  getTeamById,
+  getMyRequests,
+  getOpenTeams,
+  leaveTeam,
+  requestJoinTeam,
+  deleteTeam,
+  updateMemberStatus,
   createTeam,
   getAllTeams,
+  updateTeam,
 };

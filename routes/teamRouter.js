@@ -4,28 +4,23 @@ const { auth, authorize } = require("../middleware/auth");
 
 const teamController = require("../controllers/teamController");
 
-// get all teams
+router.get("/:id", teamController.getTeamById);
 router.get("/", teamController.getAllTeams);
-
-// API cho thành viên đăng ký tham gia đội
-router.post(
-  "/teams/register",
-  auth,
-  authorize("member", "visitor"),
-  teamController.registerTeam
-);
-router.post("/teams", auth, authorize("admin"), teamController.createTeam);
-
-// Cập nhật kết quả đội tuyển
+// Admin routes
+router.put("/:teamId", auth, authorize("admin"), teamController.updateTeam);
+router.post("/", auth, authorize("admin"), teamController.createTeam);
 router.put(
-  "/teams/:teamId/results",
+  "/member/:memberId",
   auth,
   authorize("admin"),
-  teamController.updateTeamResults
+  teamController.updateMemberStatus
 );
+router.delete("/:teamId", auth, authorize("admin"), teamController.deleteTeam);
 
-// Lọc đội tuyển theo thành tích
-router.get("/teams/filter", auth, teamController.filterTeamsByAchievement);
-// router.get("/competition/:competitionId", teamController.getTeamsByCompetition);
+// Member routes
+router.post("/:teamId/join", teamController.requestJoinTeam);
+router.delete("/:teamId/leave", teamController.leaveTeam);
+router.get("/open", teamController.getOpenTeams);
+router.get("/my-requests", teamController.getMyRequests);
 
 module.exports = router;
