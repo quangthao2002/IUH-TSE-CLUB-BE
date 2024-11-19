@@ -5,7 +5,7 @@ const { auth, authorize } = require("../middleware/auth");
 
 // /api/events/status?statusEvent=upcoming
 router.get("/", eventController.getAllEvents); // Lấy danh sách sự kiện
-router.get("/status", getEventsByStatus);
+router.get("/status", eventController.getEventsByStatus);
 router.post("/create", auth, eventController.createEvent); // Tạo sự kiện mới
 router.post("/approve", eventController.approveEventRequest); // Duyệt hoặc từ chối yêu cầu sự kiện
 router.get("/host-requests/:eventId", eventController.getHostRequests);

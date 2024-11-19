@@ -55,9 +55,6 @@ router.put("/profile", userController.updateUserProfile);
 // Đăng ký tham gia event
 router.post("/events/:eventId/register", eventController.registerForEvent);
 
-// Đăng ký làm chủ trì event
-router.post("/events/:eventId/host", eventController.registerHostRequest);
-
 // Đăng ký làm người đào tạo cho khóa sau
 router.post(
   "/training/:trainingSessionId/trainer",
