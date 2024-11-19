@@ -163,6 +163,33 @@ const cancelEvent = async (req, res) => {
   }
 };
 
+const deleteEvent = async (req, res) => {
+  const userRole = req.user.role; // Vai trò từ token
+  const { eventId } = req.params; // Lấy ID sự kiện từ URL
+
+  try {
+    // Kiểm tra quyền của user
+    if (userRole !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admin only." });
+    }
+
+    // Kiểm tra sự kiện có tồn tại không
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found." });
+    }
+
+    // Thực hiện xóa sự kiện
+    await Event.findByIdAndDelete(eventId);
+
+    // Phản hồi thành công
+    res.status(200).json({ message: "Event deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 const approveEventRequest = async (req, res) => {
   const { eventId, action } = req.body; // action có thể là "approve" hoặc "reject"
 
@@ -330,6 +357,7 @@ module.exports = {
   getEventsByStatus,
   // registerHostRequest,
   // approveHostRequest,
+  deleteEvent,
   getHostRequests,
   getAllEvents,
 };

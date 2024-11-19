@@ -10,9 +10,10 @@ router.post("/create", auth, eventController.createEvent); // Tạo sự kiện 
 router.post("/approve", eventController.approveEventRequest); // Duyệt hoặc từ chối yêu cầu sự kiện
 router.get("/host-requests/:eventId", eventController.getHostRequests);
 router.post("/register/:eventId", eventController.registerForEvent); // Đăng ký tham gia sự kiện
+router.put("/cancel/:id", eventController.cancelEvent); // Hủy sự kiện (thay đổi trạng thái)
+router.delete("/:id", eventController.deleteEvent);
 router.get("/:id", eventController.getEvent); // Lấy thông tin sự kiện
 router.put("/:id", eventController.updateEvent); // Cập nhật sự kiện
-router.delete("/:id", eventController.cancelEvent); // Hủy sự kiện
 
 // // Endpoint để đăng ký làm chủ trì
 // router.post("/:eventId/register-host", eventController.registerHostRequest);
