@@ -6,7 +6,6 @@ const teamSchema = new mongoose.Schema(
     teamLeader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     }, // Đội trưởng (ID từ User)
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Thành viên (Danh sách ID từ User)
     description: { type: String }, // Mô tả đội

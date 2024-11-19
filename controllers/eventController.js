@@ -13,6 +13,7 @@ const getAllEvents = async (req, res) => {
     const skip = (page - 1) * limit;
     const totalEvents = await Event.countDocuments(query);
     const events = await Event.find(query)
+      .populate("host", "name email")
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 }); // Sắp xếp theo thời gian

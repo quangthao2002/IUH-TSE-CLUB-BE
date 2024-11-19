@@ -59,6 +59,122 @@ const createTeam = async (req, res) => {
   }
 };
 
+const updateMemberStatus = async (req, res) => {
+  const { memberId } = req.params; // ID của thành viên
+  const { status } = req.body; // Trạng thái mới: "approved" hoặc "rejected"
+
+  try {
+    const updatedMember = await TeamMember.findByIdAndUpdate(
+      memberId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedMember) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    res.status(200).json({
+      message: `Member status updated to ${status}`,
+      member: updatedMember,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const deleteTeam = async (req, res) => {
+  const { teamId } = req.params;
+
+  try {
+    // Xóa đội
+    const deletedTeam = await Team.findByIdAndDelete(teamId);
+    if (!deletedTeam) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Xóa các thành viên liên quan
+    await TeamMember.deleteMany({ teamId });
+
+    res.status(200).json({
+      message: "Team and related members deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// API MEMBER
+const requestJoinTeam = async (req, res) => {
+  const { teamId } = req.params;
+  const memberId = req.user.id; // Lấy ID thành viên từ token
+
+  try {
+    // Kiểm tra đội tồn tại
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Kiểm tra thành viên đã gửi yêu cầu trước đó chưa
+    const existingRequest = await TeamMember.findOne({ memberId, teamId });
+    if (existingRequest) {
+      return res
+        .status(400)
+        .json({ message: "You already requested to join this team" });
+    }
+
+    // Tạo yêu cầu mới
+    const newRequest = new TeamMember({ memberId, teamId });
+    await newRequest.save();
+
+    res.status(201).json({
+      message: "Request to join team sent successfully",
+      request: newRequest,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Rời khỏi đội tuyển
+const leaveTeam = async (req, res) => {
+  const { teamId } = req.params;
+  const memberId = req.user.id; // Lấy ID thành viên từ token
+
+  try {
+    const member = await TeamMember.findOneAndDelete({ memberId, teamId });
+    if (!member) {
+      return res.status(404).json({ message: "You are not part of this team" });
+    }
+
+    res.status(200).json({ message: "Left the team successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// xem dánh ac
+const getOpenTeams = async (req, res) => {
+  try {
+    const openTeams = await Team.find({ status: "open" })
+      .populate("teamLeader", "name email")
+      .exec();
+
+    res.status(200).json({
+      message: "Open teams fetched successfully",
+      teams: openTeams,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 const getTeamById = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
