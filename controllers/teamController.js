@@ -2,24 +2,23 @@ const Team = require("../models/Team");
 const TeamMember = require("../models/TeamMember");
 const Achievement = require("../models/Achievement");
 
-const Competition = require("../models/Competition");
 const getAllTeams = async (req, res) => {
+  const { q, status, page = 1, limit = 10 } = req.query;
+
   try {
-    const { q, page = 1, limit = 10 } = req.query;
-
-    // Khởi tạo query filter
     const query = {};
-    if (q) query.name = { $regex: q, $options: "i" }; // Tìm kiếm theo tên
+    if (q) query.teamName = { $regex: q, $options: "i" }; // Tìm kiếm theo tên
+    if (status) query.status = status; // Lọc theo trạng thái
 
-    // Phân trang
     const skip = (page - 1) * limit;
     const totalTeams = await Team.countDocuments(query);
     const teams = await Team.find(query)
+      .populate("teamLeader", "name email")
+      .populate("members", "name email")
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
 
-    // Trả về kết quả
     res.json({
       message: "Teams fetched successfully",
       data: {
@@ -31,48 +30,52 @@ const getAllTeams = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 // API cho Admin tạo đội
 const createTeam = async (req, res) => {
-  const { teamName, teamLeader, description } = req.body;
+  const { teamName, teamLeader, members, description, achievements } = req.body;
+  const createdBy = req.user.id; // Người tạo từ token
 
   try {
-    // const competition = await Competition.findById(competitionId);
-    // if (!competition) {
-    //   return res.status(404).json({ message: "Competition not found" });
-    // }
-
     const newTeam = new Team({
       teamName,
       teamLeader,
+      members,
       description,
-      members: [],
+      achievements,
+      createdBy,
     });
 
     await newTeam.save();
-
     res
       .status(201)
-      .json({ message: "Team created successfully", data: { newTeam } });
+      .json({ message: "Team created successfully", team: newTeam });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error", error });
   }
 };
 
-// Lấy danh sách đội tuyển của một cuộc thi: API này để hiển thị các đội tuyển đã đăng ký tham gia cuộc thi cụ thể.
-// const getTeamsByCompetition = async (req, res) => {
-//   const { competitionId } = req.params;
+const getTeamById = async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id)
+      .populate("teamLeader", "name email")
+      .populate("members", "name email")
+      .populate("projects");
 
-//   try {
-//     const teams = await Team.find({ competitionId }).populate("members");
-//     res.status(200).json({ message: "Teams found", data: { teams } });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    res.json({ message: "Team details fetched successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 // đăng ký đội tuyển ở phía member
 const registerTeam = async (req, res) => {

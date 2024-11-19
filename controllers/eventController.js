@@ -81,8 +81,14 @@ const getEvent = async (req, res) => {
 const createEvent = async (req, res) => {
   const userId = req.user.id; // Lấy ID từ token
   const userRole = req.user.role; // Lấy vai trò từ token
-  const { eventName, location, description, eventDate, maxParticipants } =
-    req.body;
+  const {
+    eventName,
+    location,
+    description,
+    eventDate,
+    startTime,
+    maxParticipants,
+  } = req.body;
 
   try {
     if (new Date(eventDate) < new Date()) {
@@ -98,6 +104,7 @@ const createEvent = async (req, res) => {
       location,
       description,
       eventDate,
+      startTime,
       maxParticipants,
       host: userId,
       statusRequest,
@@ -121,6 +128,7 @@ const updateEvent = async (req, res) => {
     location,
     description,
     eventDate,
+    startTime,
     maxParticipants,
     statusEvent,
   } = req.body;
@@ -132,6 +140,7 @@ const updateEvent = async (req, res) => {
         location,
         description,
         eventDate,
+        startTime,
         maxParticipants,
         statusEvent,
       },
