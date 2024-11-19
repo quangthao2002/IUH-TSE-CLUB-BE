@@ -11,7 +11,7 @@ router.post("/approve", eventController.approveEventRequest); // Duyệt hoặc 
 router.get("/host-requests/:eventId", eventController.getHostRequests);
 router.post("/register/:eventId", eventController.registerForEvent); // Đăng ký tham gia sự kiện
 router.put("/cancel/:id", eventController.cancelEvent); // Hủy sự kiện (thay đổi trạng thái)
-router.delete("/:id", eventController.deleteEvent);
+router.delete("/:id", auth, authorize("admin"), eventController.deleteEvent);
 router.get("/:id", eventController.getEvent); // Lấy thông tin sự kiện
 router.put("/:id", eventController.updateEvent); // Cập nhật sự kiện
 
