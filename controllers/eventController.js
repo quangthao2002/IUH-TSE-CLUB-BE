@@ -33,7 +33,7 @@ const getAllEvents = async (req, res) => {
   }
 };
 
-// Đăng ký tham gia sự kiện
+// Đăng ký tham gia sự kiện cho thành viên
 const registerForEvent = async (req, res) => {
   const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
   const { eventId } = req.params;
@@ -84,10 +84,15 @@ const createEvent = async (req, res) => {
   const { eventName, location, description, eventDate, maxParticipants } =
     req.body;
 
-  const statusRequest = userRole === "admin" ? "approved" : "pending";
-  const statusEvent = userRole === "admin" ? "upcoming" : undefined;
-
   try {
+    if (new Date(eventDate) < new Date()) {
+      return res
+        .status(400)
+        .json({ message: "Event date cannot be in the past" });
+    }
+
+    const statusRequest = userRole === "admin" ? "approved" : "pending";
+    const statusEvent = userRole === "admin" ? "upcoming" : undefined;
     const newEvent = new Event({
       eventName,
       location,
@@ -117,12 +122,19 @@ const updateEvent = async (req, res) => {
     description,
     eventDate,
     maxParticipants,
-    status,
+    statusEvent,
   } = req.body;
   try {
     const updatedEvent = await Event.findByIdAndUpdate(
       id,
-      { eventName, location, description, eventDate, maxParticipants, status },
+      {
+        eventName,
+        location,
+        description,
+        eventDate,
+        maxParticipants,
+        statusEvent,
+      },
       { new: true }
     );
     if (!updatedEvent) {
@@ -139,7 +151,7 @@ const cancelEvent = async (req, res) => {
   try {
     const event = await Event.findByIdAndUpdate(
       req.params.id,
-      { status: "canceled" },
+      { statusEvent: "canceled" },
       { new: true }
     );
     if (!event) {
@@ -151,82 +163,60 @@ const cancelEvent = async (req, res) => {
   }
 };
 
-// POST /api/events/:eventId/register-host
-const registerHostRequest = async (req, res) => {
-  const { eventId } = req.params;
-  const userId = req.user._id; // ID thành viên hiện tại, được lấy từ token xác thực
+const approveEventRequest = async (req, res) => {
+  const { eventId, action } = req.body; // action có thể là "approve" hoặc "reject"
+
+  if (!["approve", "reject"].includes(action)) {
+    return res.status(400).json({ message: "Invalid action" });
+  }
 
   try {
     const event = await Event.findById(eventId);
-
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Kiểm tra nếu thành viên đã là host hoặc đã có yêu cầu "pending"
-    const alreadyHost = event.hosts.includes(userId);
-    const pendingRequest = event.hostRequests.some(
-      (request) =>
-        request.memberId.toString() === userId && request.status === "pending"
-    );
+    // Cập nhật trạng thái yêu cầu
+    event.statusRequest = action === "approve" ? "approved" : "rejected";
 
-    if (alreadyHost) {
-      return res
-        .status(400)
-        .json({ message: "You are already a host for this event" });
-    }
-    if (pendingRequest) {
-      return res
-        .status(400)
-        .json({ message: "You already have a pending host request" });
+    if (action === "approve") {
+      event.statusEvent = "upcoming"; // Nếu được duyệt, đặt trạng thái sự kiện là "upcoming"
     }
 
-    // Thêm yêu cầu đăng ký làm chủ trì với trạng thái "pending"
-    event.hostRequests.push({ memberId: userId, status: "pending" });
     await event.save();
 
-    res
-      .status(200)
-      .json({ message: "Host request submitted, awaiting approval" });
+    res.json({ message: `Event ${action}d successfully`, event });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 };
 
-const approveHostRequest = async (req, res) => {
-  const { eventId, memberId } = req.params;
-  const { action } = req.body; // "approve" hoặc "reject"
+const getEventsByStatus = async (req, res) => {
+  const { statusEvent, statusRequest } = req.query; // Nhận tham số lọc từ query parameters
 
   try {
-    const event = await Event.findById(eventId);
+    const filter = {};
 
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+    // Thêm điều kiện lọc nếu có tham số
+    if (statusEvent) {
+      filter.statusEvent = statusEvent;
+    }
+    if (statusRequest) {
+      filter.statusRequest = statusRequest;
     }
 
-    // Tìm yêu cầu đăng ký làm chủ trì của thành viên
-    const hostRequest = event.hostRequests.find(
-      (request) => request.memberId.toString() === memberId
-    );
+    // Truy vấn sự kiện từ database
+    const events = await Event.find(filter).populate("host", "name email"); // Populate host để lấy thêm thông tin chi tiết
 
-    if (!hostRequest) {
-      return res.status(404).json({ message: "Host request not found" });
-    }
-
-    // Cập nhật trạng thái yêu cầu
-    if (action === "approve") {
-      hostRequest.status = "approved";
-      event.hosts.push(memberId); // Thêm thành viên vào danh sách hosts
-    } else if (action === "reject") {
-      hostRequest.status = "rejected";
-    } else {
-      return res.status(400).json({ message: "Invalid action" });
-    }
-
-    await event.save();
-    res.status(200).json({ message: `Host request ${action}d successfully` });
+    res.status(200).json({
+      message: "Events fetched successfully",
+      data: events,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({
+      message: "Server error",
+      error,
+    });
   }
 };
 
@@ -251,14 +241,95 @@ const getHostRequests = async (req, res) => {
   }
 };
 
+// POST /api/events/:eventId/register-host
+// const registerHostRequest = async (req, res) => {
+//   const { eventId } = req.params;
+//   const userId = req.user._id; // ID thành viên hiện tại, được lấy từ token xác thực
+
+//   try {
+//     const event = await Event.findById(eventId);
+
+//     if (!event) {
+//       return res.status(404).json({ message: "Event not found" });
+//     }
+
+//     // Kiểm tra nếu thành viên đã là host hoặc đã có yêu cầu "pending"
+//     const alreadyHost = event.hosts.includes(userId);
+//     const pendingRequest = event.hostRequests.some(
+//       (request) =>
+//         request.memberId.toString() === userId && request.status === "pending"
+//     );
+
+//     if (alreadyHost) {
+//       return res
+//         .status(400)
+//         .json({ message: "You are already a host for this event" });
+//     }
+//     if (pendingRequest) {
+//       return res
+//         .status(400)
+//         .json({ message: "You already have a pending host request" });
+//     }
+
+//     // Thêm yêu cầu đăng ký làm chủ trì với trạng thái "pending"
+//     event.hostRequests.push({ memberId: userId, status: "pending" });
+//     await event.save();
+
+//     res
+//       .status(200)
+//       .json({ message: "Host request submitted, awaiting approval" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
+
+// const approveHostRequest = async (req, res) => {
+//   const { eventId, memberId } = req.params;
+//   const { action } = req.body; // "approve" hoặc "reject"
+
+//   try {
+//     const event = await Event.findById(eventId);
+
+//     if (!event) {
+//       return res.status(404).json({ message: "Event not found" });
+//     }
+
+//     // Tìm yêu cầu đăng ký làm chủ trì của thành viên
+//     const hostRequest = event.hostRequests.find(
+//       (request) => request.memberId.toString() === memberId
+//     );
+
+//     if (!hostRequest) {
+//       return res.status(404).json({ message: "Host request not found" });
+//     }
+
+//     // Cập nhật trạng thái yêu cầu
+//     if (action === "approve") {
+//       hostRequest.status = "approved";
+//       event.hosts.push(memberId); // Thêm thành viên vào danh sách hosts
+//     } else if (action === "reject") {
+//       hostRequest.status = "rejected";
+//     } else {
+//       return res.status(400).json({ message: "Invalid action" });
+//     }
+
+//     await event.save();
+//     res.status(200).json({ message: `Host request ${action}d successfully` });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
+
 module.exports = {
   getEvent,
   createEvent,
   updateEvent,
   cancelEvent,
   registerForEvent,
-  registerHostRequest,
-  approveHostRequest,
+  approveEventRequest,
+  getEventsByStatus,
+  // registerHostRequest,
+  // approveHostRequest,
   getHostRequests,
   getAllEvents,
 };
