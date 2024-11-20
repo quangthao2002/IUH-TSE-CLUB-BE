@@ -15,12 +15,17 @@ router.put(
   authorize("admin"),
   teamController.updateMemberStatus
 );
-router.delete("/:teamId", auth, authorize("admin"), teamController.deleteTeam);
+router.delete("/:teamId", auth, teamController.deleteTeam);
 
 // Member routes
-router.post("/:teamId/join", teamController.requestJoinTeam);
-router.delete("/:teamId/leave", teamController.leaveTeam);
+router.post(
+  "/:teamId/join",
+  auth,
+  authorize("admin"),
+  teamController.requestJoinTeam
+);
+router.delete("/:teamId/leave", auth, teamController.leaveTeam);
 router.get("/open", teamController.getOpenTeams);
-router.get("/my-requests", teamController.getMyRequests);
+router.get("/my-requests", auth, teamController.getMyRequests);
 
 module.exports = router;
