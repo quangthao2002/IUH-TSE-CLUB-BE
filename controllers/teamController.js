@@ -36,7 +36,7 @@ const getAllTeams = async (req, res) => {
 
 // API cho Admin tạo đội
 const createTeam = async (req, res) => {
-  const { teamName, teamLeader, members, description, achievements } = req.body;
+  const { teamName, teamLeader, members, description } = req.body;
   const createdBy = req.user.id; // Người tạo từ token
 
   try {
@@ -45,7 +45,6 @@ const createTeam = async (req, res) => {
       teamLeader,
       members,
       description,
-      achievements,
       createdBy,
     });
 
