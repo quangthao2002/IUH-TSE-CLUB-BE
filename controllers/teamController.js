@@ -134,7 +134,6 @@ const getTeamById = async (req, res) => {
 const requestJoinTeam = async (req, res) => {
   const { teamId } = req.params;
   const memberId = req.user.id; // Lấy ID thành viên từ token
-
   try {
     // Kiểm tra đội tồn tại
     const team = await Team.findById(teamId);
