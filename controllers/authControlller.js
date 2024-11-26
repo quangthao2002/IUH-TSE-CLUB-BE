@@ -50,7 +50,7 @@ const refreshAccessToken = async (req, res) => {
     // Tạo access token mới
     const newAccessToken = jwt.sign(
       { id: tokenData.user.id, role: tokenData.user.role },
-      process.env.ACCESS_TOKEN_SECRET,
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
