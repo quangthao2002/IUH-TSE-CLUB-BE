@@ -5,7 +5,10 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const sendVerificationEmail = require("../utils/sendEmail");
 const RefreshToken = require("../models/RefreshToken");
-const { generateAccessToken, generateRefreshToken } = require("../controllers/authControlller");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../controllers/authControlller");
 
 // Đăng ký người dùng mới
 const registerUser = async (req, res) => {
@@ -80,8 +83,9 @@ const logoutUser = async (req, res) => {
 
 // Lấy thông tin người dùng đang đăng nhập
 const getUserProfile = async (req, res) => {
+  console.log(req.user);
   try {
-    const user = await User.findById(req.user).select("-password");
+    const user = await User.findById(req.user.id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -327,7 +331,9 @@ const assignRole = async (req, res) => {
     user.role = role;
     await user.save();
 
-    res.status(200).json({ message: `Role updated to ${role}`, data: { user } });
+    res
+      .status(200)
+      .json({ message: `Role updated to ${role}`, data: { user } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -345,7 +351,10 @@ const registerForEvent = async (req, res) => {
     if (event.status !== "active") {
       return res.status(400).json({ message: "Event is not active" });
     }
-    if (event.maxParticipants && event.registeredParticipants.length >= event.maxParticipants) {
+    if (
+      event.maxParticipants &&
+      event.registeredParticipants.length >= event.maxParticipants
+    ) {
       return res.status(400).json({
         message: "Event is full",
         data: event.registeredParticipants.length,

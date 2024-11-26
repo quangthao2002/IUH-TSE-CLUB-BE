@@ -33,7 +33,9 @@ const refreshAccessToken = async (req, res) => {
   }
 
   try {
-    const tokenData = await RefreshToken.findOne({ token: refreshToken });
+    const tokenData = await RefreshToken.findOne({
+      token: refreshToken,
+    }).populate("user", "role");
 
     if (!tokenData) {
       return res.status(403).json({ message: "Invalid refresh token" });
@@ -47,9 +49,9 @@ const refreshAccessToken = async (req, res) => {
 
     // Tạo access token mới
     const newAccessToken = jwt.sign(
-      { id: tokenData.user },
+      { id: tokenData.user.id, role: tokenData.user.role },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "7d" }
     );
 
     // Tùy chọn: Tạo refresh token mới (nếu cần) và xóa token cũ
