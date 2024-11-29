@@ -44,8 +44,18 @@ const registerForEvent = async (req, res) => {
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
-    if (event.status !== "active") {
-      return res.status(400).json({ message: "Event is not active" });
+    if (event.statusEvent === "completed") {
+      return res.status(400).json({ message: "Event has already completed" });
+    }
+
+    if (event.statusEvent === "cancelled") {
+      return res.status(400).json({ message: "Event has been cancelled" });
+    }
+
+    if (event.statusEvent !== "upcoming") {
+      return res
+        .status(400)
+        .json({ message: "Event is not open for registration" });
     }
     if (
       event.maxParticipants &&
