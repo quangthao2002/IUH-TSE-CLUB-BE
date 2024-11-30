@@ -16,7 +16,8 @@ const getAllEvents = async (req, res) => {
       .populate("host", "username codeStudent email phone")
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ createdAt: -1 }); // Sắp xếp theo thời gian
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian
+      .populate("registeredParticipants"); // Populate danh sách tham gia
 
     // Trả về kết quả
     res.json({

@@ -14,7 +14,7 @@ const getAllTeams = async (req, res) => {
     const totalTeams = await Team.countDocuments(query);
     const teams = await Team.find(query)
       .populate("teamLeader", "name email")
-      .populate("members", "name email")
+      .populate("members")
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
