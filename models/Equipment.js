@@ -8,7 +8,7 @@ const equipmentSchema = new mongoose.Schema(
     available: { type: Number, default: 1 },
     status: {
       type: String,
-      enum: ["available", "in use", "unavailable"],
+      enum: ["available", "in use", "pending", "unavailable"],
       default: "available",
     },
     currentBorrower: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

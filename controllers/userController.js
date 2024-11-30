@@ -83,7 +83,6 @@ const logoutUser = async (req, res) => {
 
 // Lấy thông tin người dùng đang đăng nhập
 const getUserProfile = async (req, res) => {
-  console.log(req.user);
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) {

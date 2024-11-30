@@ -49,6 +49,7 @@ const borrowEquipment = async (req, res) => {
 
     // Đặt trạng thái chờ phê duyệt
     equipment.approvalStatus = "pending";
+    equipment.status = "pending";
     equipment.currentBorrower = userId;
     equipment.borrowDate = new Date();
     equipment.returnDate = returnDate;
