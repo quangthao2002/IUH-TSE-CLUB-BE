@@ -15,7 +15,8 @@ const getAllEquipment = async (req, res) => {
     const equipment = await Equipment.find(query)
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .populate("currentBorrower");
 
     // Trả về kết quả
     res.json({
