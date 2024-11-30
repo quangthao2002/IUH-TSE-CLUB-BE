@@ -19,10 +19,10 @@ const equipmentSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
-    deviceStatus: {
+    statusHealth: {
       type: String,
-      enum: ["Bình thường", "Trung Bình", "Tốt"],
-      default: "Trung Bình",
+      enum: ["good", "normal", "poor"],
+      default: "good",
     },
   },
   { timestamps: true }
