@@ -6,7 +6,6 @@ const teamController = require("../controllers/teamController");
 
 // router.post("/join/:teamId/", auth, teamController.requestJoinTeam);
 // router.get("/:id", teamController.getTeamById);
-router.get("/", teamController.getAllTeams);
 // // Admin routes
 // router.put("/:teamId", auth, authorize("admin"), teamController.updateTeam);
 // router.post("/", auth, authorize("admin"), teamController.createTeam);
@@ -23,6 +22,7 @@ router.get("/", teamController.getAllTeams);
 // router.get("/open", teamController.getOpenTeams);
 // router.get("/my-requests", auth, teamController.getMyRequests);
 
+router.get("/", teamController.getAllTeams);
 // API gửi yêu cầu tham gia nhóm (Member)
 router.post("/join/:teamId", auth, teamController.requestJoinTeam);
 
