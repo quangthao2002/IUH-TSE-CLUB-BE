@@ -307,6 +307,89 @@ const addMemberToTeam = async (req, res) => {
   }
 };
 
+// get thong tin 1 nhom
+const getTeamById = async (req, res) => {
+  const { teamId } = req.params;
+
+  try {
+    const team = await Team.findById(teamId)
+      .populate("teamLeader", "name email")
+      .populate("members", "name email");
+
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    res.json({ message: "Team details retrieved successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const closeTeam = async (req, res) => {
+  const { teamId } = req.params;
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Đổi trạng thái nhóm thành "closed"
+    team.status = "closed";
+    await team.save();
+
+    res.json({ message: "Team closed successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const reopenTeam = async (req, res) => {
+  const { teamId } = req.params;
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    team.status = "open";
+    await team.save();
+
+    res.json({ message: "Team reopened successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const removeMemberFromTeam = async (req, res) => {
+  const { teamId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Loại bỏ thành viên khỏi danh sách members
+    team.members = team.members.filter(
+      (member) => member.toString() !== userId
+    );
+
+    await team.save();
+
+    res.json({ message: "Member removed successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 module.exports = {
   getAllTeams,
   createTeam,
@@ -318,4 +401,10 @@ module.exports = {
   getAllUsers,
   changeTeamLeader,
   getOpenTeams,
+  leaveTeam,
+  addMemberToTeam,
+  getTeamById,
+  reopenTeam,
+  closeTeam,
+  removeMemberFromTeam,
 };
