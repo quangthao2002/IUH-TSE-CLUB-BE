@@ -52,7 +52,7 @@ router.get(
   teamController.getJoinRequests
 );
 
-// Xử lý yêu cầu tham gia (Chấp nhận hoặc từ chối, chỉ admin hoặc leader)
+//API Xử lý yêu cầu tham gia (Chấp nhận hoặc từ chối, chỉ admin hoặc leader)
 router.post(
   "/:teamId/requests/:userId",
   auth,
@@ -60,7 +60,7 @@ router.post(
   teamController.handleJoinRequest
 );
 
-//  Lấy danh sách tất cả người dùng (Để chọn leader hoặc duyệt thành viên)
+// API Lấy danh sách tất cả người dùng (Để chọn leader hoặc duyệt thành viên)
 router.get(
   "/users",
   auth,
@@ -78,6 +78,7 @@ router.put(
 
 // update team
 router.put("/:teamId", auth, authorize("admin"), teamController.updateTeam);
+// API lấy danh sách nhóm mở
 router.get("/open", auth, teamController.getOpenTeams);
 
 module.exports = router;
