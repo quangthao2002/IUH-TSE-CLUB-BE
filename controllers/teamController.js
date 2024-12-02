@@ -248,6 +248,65 @@ const changeTeamLeader = async (req, res) => {
   }
 };
 
+const leaveTeam = async (req, res) => {
+  const userId = req.user.id;
+  const { teamId } = req.params;
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Kiểm tra nếu user là thành viên của nhóm
+    if (!team.members.includes(userId)) {
+      return res
+        .status(400)
+        .json({ message: "You are not a member of this team" });
+    }
+
+    // Loại bỏ thành viên khỏi danh sách members
+    team.members = team.members.filter(
+      (member) => member.toString() !== userId
+    );
+
+    await team.save();
+
+    res.json({ message: "You have left the team successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+//API thêm thành viên vào nhóm (chỉ admin hoặc leader)
+const addMemberToTeam = async (req, res) => {
+  const { teamId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Kiểm tra nếu user đã là thành viên
+    if (team.members.includes(userId)) {
+      return res
+        .status(400)
+        .json({ message: "User is already a member of the team" });
+    }
+
+    team.members.push(userId);
+    await team.save();
+
+    res.json({ message: "Member added successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 module.exports = {
   getAllTeams,
   createTeam,

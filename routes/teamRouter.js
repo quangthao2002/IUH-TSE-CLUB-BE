@@ -24,7 +24,7 @@ router.get(
 router.post(
   "/:teamId/requests/:userId",
   auth,
-  authorize(["admin", "leader"]), // Admin hoặc leader được phép duyệt
+  authorize("admin", "leader"), // Admin hoặc leader được phép duyệt
   teamController.handleJoinRequest
 );
 

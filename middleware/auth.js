@@ -20,6 +20,7 @@ const auth = async (req, res, next) => {
 };
 const authorize = (...roles) => {
   return (req, res, next) => {
+    console.log(req.user.role); // Kiểm tra vai trò của user
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ message: "Permission denied" });
     }
