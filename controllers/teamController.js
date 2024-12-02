@@ -126,6 +126,29 @@ const deleteTeam = async (req, res) => {
   }
 };
 
+const updateTeam = async (req, res) => {
+  const { teamId } = req.params;
+  const { teamName, description } = req.body;
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Cập nhật thông tin nhóm
+    if (teamName) team.teamName = teamName;
+    if (description) team.description = description;
+
+    await team.save();
+
+    res.json({ message: "Team updated successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 // admin xac nhan tham gia nhom
 
 const handleJoinRequest = async (req, res) => {
@@ -230,6 +253,7 @@ module.exports = {
   createTeam,
   requestJoinTeam,
   deleteTeam,
+  updateTeam,
   handleJoinRequest,
   getJoinRequests,
   getAllUsers,
