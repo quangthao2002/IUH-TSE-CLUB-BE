@@ -1,4 +1,5 @@
 const Team = require("../models/Team");
+const User = require("../models/User");
 // tao nhom phia admin
 const createTeam = async (req, res) => {
   const { teamName, description, teamLeader } = req.body; // teamLeader sẽ được chọn từ UI
