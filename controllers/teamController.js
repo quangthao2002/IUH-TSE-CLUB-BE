@@ -228,6 +228,7 @@ module.exports = {
   getAllTeams,
   createTeam,
   requestJoinTeam,
+  deleteTeam,
   handleJoinRequest,
   getJoinRequests,
   getAllUsers,
