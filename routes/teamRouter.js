@@ -23,6 +23,11 @@ router.get("/", teamController.getAllTeams);
 // router.get("/open", teamController.getOpenTeams);
 // router.get("/my-requests", auth, teamController.getMyRequests);
 
+// API gửi yêu cầu tham gia nhóm (Member)
+router.post("/join/:teamId", auth, teamController.requestJoinTeam);
+
+// API xóa nhóm (Admin)
+router.delete("/:teamId", auth, authorize("admin"), teamController.deleteTeam);
 router.post("/create", auth, authorize("admin"), teamController.createTeam);
 
 // 2. Lấy danh sách yêu cầu tham gia của một nhóm (Chỉ admin hoặc leader nhóm đó)
