@@ -6,7 +6,7 @@ const teamController = require("../controllers/teamController");
 
 // router.post("/join/:teamId/", auth, teamController.requestJoinTeam);
 // router.get("/:id", teamController.getTeamById);
-// router.get("/", teamController.getAllTeams);
+router.get("/", teamController.getAllTeams);
 // // Admin routes
 // router.put("/:teamId", auth, authorize("admin"), teamController.updateTeam);
 // router.post("/", auth, authorize("admin"), teamController.createTeam);
@@ -48,5 +48,15 @@ router.get(
   authorize("admin"), // Chỉ admin lấy danh sách user
   teamController.getAllUsers
 );
+
+// Thay đổi leader của nhóm (Admin hoặc leader hiện tại)
+router.put(
+  "/:teamId/change-leader",
+  auth,
+  authorize(["admin", "leader"]), // Admin hoặc leader hiện tại
+  teamController.changeTeamLeader
+);
+
+router.get("/open", auth, getOpenTeams);
 
 module.exports = router;

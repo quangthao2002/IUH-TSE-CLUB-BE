@@ -16,10 +16,27 @@ const createTeam = async (req, res) => {
     });
 
     await newTeam.save();
+
+    // Cập nhật role của user thành "teamLeader"
+    await User.findByIdAndUpdate(teamLeader, { role: "teamLeader" });
     res
       .status(201)
       .json({ message: "Team created successfully", team: newTeam });
   } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const getOpenTeams = async (req, res) => {
+  try {
+    const teams = await Team.find({ status: "open" }).populate(
+      "teamLeader",
+      "name"
+    );
+
+    res.json({ message: "Open teams retrieved successfully", teams });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -119,10 +136,42 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const changeTeamLeader = async (req, res) => {
+  const { teamId } = req.params;
+  const { newLeaderId } = req.body; // ID của leader mới
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    const currentLeaderId = team.teamLeader;
+
+    // Cập nhật leader của nhóm
+    team.teamLeader = newLeaderId;
+
+    // Cập nhật leader hiện tại thành "member"
+    await User.findByIdAndUpdate(currentLeaderId, { role: "member" });
+
+    // Cập nhật role của leader mới thành "teamLeader"
+    await User.findByIdAndUpdate(newLeaderId, { role: "teamLeader" });
+
+    await team.save();
+
+    res.json({ message: "Team leader changed successfully", team });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 module.exports = {
   createTeam,
   requestJoinTeam,
   handleJoinRequest,
   getJoinRequests,
   getAllUsers,
+  changeTeamLeader,
+  getOpenTeams,
 };
