@@ -6,7 +6,7 @@ const teamSchema = new mongoose.Schema({
   teamLeader: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    // required: true,
   }, // Leader của nhóm
   members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Danh sách thành viên đã được chấp nhận
   joinRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Danh sách yêu cầu tham gia
