@@ -6,7 +6,7 @@ const teamController = require("../controllers/teamController");
 
 // router.post("/join/:teamId/", auth, teamController.requestJoinTeam);
 // router.get("/:id", teamController.getTeamById);
-router.get("/", teamController.getAllTeams);
+// router.get("/", teamController.getAllTeams);
 // // Admin routes
 // router.put("/:teamId", auth, authorize("admin"), teamController.updateTeam);
 // router.post("/", auth, authorize("admin"), teamController.createTeam);
@@ -57,6 +57,6 @@ router.put(
   teamController.changeTeamLeader
 );
 
-router.get("/open", auth, getOpenTeams);
+router.get("/open", auth, teamController.getOpenTeams);
 
 module.exports = router;
