@@ -1,5 +1,38 @@
 const Team = require("../models/Team");
 const User = require("../models/User");
+
+const getAllTeams = async (req, res) => {
+  const { q, status, page = 1, limit = 10 } = req.query;
+
+  try {
+    const query = {};
+    if (q) query.teamName = { $regex: q, $options: "i" }; // Tìm kiếm theo tên
+    if (status) query.status = status; // Lọc theo trạng thái
+
+    const skip = (page - 1) * limit;
+    const totalTeams = await Team.countDocuments(query);
+    const teams = await Team.find(query)
+      .populate("teamLeader", "name email")
+      .populate("members")
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    res.json({
+      message: "Teams fetched successfully",
+      data: {
+        total: totalTeams,
+        teams,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalTeams / limit),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 // tao nhom phia admin
 const createTeam = async (req, res) => {
   const { teamName, description, teamLeader } = req.body; // teamLeader sẽ được chọn từ UI
@@ -167,6 +200,7 @@ const changeTeamLeader = async (req, res) => {
 };
 
 module.exports = {
+  getAllTeams,
   createTeam,
   requestJoinTeam,
   handleJoinRequest,
