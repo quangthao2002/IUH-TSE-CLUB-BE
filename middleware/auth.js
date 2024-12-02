@@ -18,7 +18,7 @@ const auth = async (req, res, next) => {
     res.status(401).json({ message: "Token is not valid" });
   }
 };
-const authorize = (...roles) => {
+const authorize = (roles) => {
   return (req, res, next) => {
     console.log(req.user.role); // Kiểm tra vai trò của user
     if (!roles.includes(req.user.role)) {
