@@ -107,7 +107,6 @@ const approveBorrowRequest = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
-  gfv;
 };
 
 // Xem thông tin thiết bị (cho cả admin và user)
