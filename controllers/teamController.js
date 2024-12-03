@@ -37,15 +37,15 @@ const getAllTeams = async (req, res) => {
 
 // tao nhom phia admin
 const createTeam = async (req, res) => {
-  const { teamName, description, teamLeader } = req.body; // teamLeader sẽ được chọn từ UI
+  const { teamName, description } = req.body; // teamLeader sẽ được chọn từ UI
   const createdBy = req.user.id;
 
   try {
     const newTeam = new Team({
       teamName,
       description,
-      teamLeader,
-      members: [teamLeader], // Leader sẽ là thành viên đầu tiên của nhóm
+      // teamLeader,
+      members: [], // Leader sẽ là thành viên đầu tiên của nhóm
       createdBy,
       status: "open",
     });
