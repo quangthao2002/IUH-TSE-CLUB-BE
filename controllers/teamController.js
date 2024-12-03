@@ -322,7 +322,10 @@ const getTeamById = async (req, res) => {
       return res.status(404).json({ message: "Team not found" });
     }
 
-    res.json({ message: "Team details retrieved successfully", team });
+    res.json({
+      message: "Team details retrieved successfully",
+      data: { team },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error });

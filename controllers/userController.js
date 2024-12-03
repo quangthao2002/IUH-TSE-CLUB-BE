@@ -4,6 +4,7 @@ const Event = require("../models/Event");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const sendVerificationEmail = require("../utils/sendEmail");
+const nodemailer = require("nodemailer");
 const RefreshToken = require("../models/RefreshToken");
 const {
   generateAccessToken,
