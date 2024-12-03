@@ -315,8 +315,9 @@ const getTeamById = async (req, res) => {
 
   try {
     const team = await Team.findById(teamId)
-      .populate("teamLeader", "name email")
-      .populate("members", "name email");
+      .populate("teamLeader")
+      .populate("members")
+      .populate("joinRequests");
 
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
