@@ -345,7 +345,7 @@ const closeTeam = async (req, res) => {
     team.status = "closed";
     await team.save();
 
-    res.json({ message: "Team closed successfully", team });
+    res.json({ message: "Team closed successfully", data: { team } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error });
@@ -364,7 +364,7 @@ const reopenTeam = async (req, res) => {
     team.status = "open";
     await team.save();
 
-    res.json({ message: "Team reopened successfully", team });
+    res.json({ message: "Team reopened successfully", data: { team } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error });
@@ -388,7 +388,7 @@ const removeMemberFromTeam = async (req, res) => {
 
     await team.save();
 
-    res.json({ message: "Member removed successfully", team });
+    res.json({ message: "Member removed successfully", data: { team } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error });
