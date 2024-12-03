@@ -129,7 +129,7 @@ const deleteTeam = async (req, res) => {
 
 const updateTeam = async (req, res) => {
   const { teamId } = req.params;
-  const { teamName, description } = req.body;
+  const { teamName, description, teamLeader } = req.body;
 
   try {
     const team = await Team.findById(teamId);
@@ -140,6 +140,7 @@ const updateTeam = async (req, res) => {
     // Cập nhật thông tin nhóm
     if (teamName) team.teamName = teamName;
     if (description) team.description = description;
+    if (teamLeader) team.teamLeader = teamLeader;
 
     await team.save();
 
