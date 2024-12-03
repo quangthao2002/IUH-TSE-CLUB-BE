@@ -45,7 +45,7 @@ const createTeam = async (req, res) => {
       teamName,
       description,
       // teamLeader,
-      members: [], // Leader sẽ là thành viên đầu tiên của nhóm
+      // Leader sẽ là thành viên đầu tiên của nhóm
       createdBy,
       status: "open",
     });
