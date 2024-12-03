@@ -15,6 +15,7 @@ const getAllTeams = async (req, res) => {
       .populate("teamLeader", "name email")
       .populate("members")
       .populate("joinRequests")
+      .populate("teamLeader")
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
