@@ -2,23 +2,30 @@ const Event = require("../models/Event");
 
 const getAllEvents = async (req, res) => {
   try {
-    const { q, category, page = 1, limit = 10 } = req.query; // Các tham số query
+    const { q, page = 1, limit = 10 } = req.query; // Các tham số query
 
     // Khởi tạo truy vấn
     const query = {};
-    if (category) query.category = category; // Lọc theo category
-    if (q) query.name = { $regex: q, $options: "i" }; // Tìm kiếm theo tên
+    if (q)
+      query.$or = [
+        { eventName: { $regex: q, $options: "i" } },
+        { location: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } },
+      ]; // Tìm kiếm theo tên
 
     // Phân trang
     const skip = (page - 1) * limit;
     const totalEvents = await Event.countDocuments(query);
     const events = await Event.find(query)
-      .populate("host", "username codeStudent email phone")
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian
-      .populate("registeredParticipants"); // Populate danh sách tham gia
+      .sort({ createdAt: -1 }); // Sắp xếp theo thời gian
 
+    if (totalEvents === 0) {
+      return res.status(404).json({
+        message: "No events found matching the search criteria",
+      });
+    }
     // Trả về kết quả
     res.json({
       message: "Events fetched successfully",
