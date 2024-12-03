@@ -45,7 +45,7 @@ const createTeam = async (req, res) => {
       teamName,
       description,
       // teamLeader,
-      // Leader sẽ là thành viên đầu tiên của nhóm
+      members: [],
       createdBy,
       status: "open",
     });
@@ -53,7 +53,7 @@ const createTeam = async (req, res) => {
     await newTeam.save();
 
     // Cập nhật role của user thành "teamLeader"
-    await User.findByIdAndUpdate(teamLeader, { role: "teamLeader" });
+    // await User.findByIdAndUpdate(teamLeader, { role: "teamLeader" });
     res
       .status(201)
       .json({ message: "Team created successfully", team: newTeam });
