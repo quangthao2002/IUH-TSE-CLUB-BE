@@ -325,7 +325,7 @@ const getTeamById = async (req, res) => {
 
     res.json({
       message: "Team details retrieved successfully",
-      data: { team },
+      data: team,
     });
   } catch (error) {
     console.error(error);
