@@ -37,7 +37,7 @@ const getAllEquipment = async (req, res) => {
 const borrowEquipment = async (req, res) => {
   const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
   const { equipmentId } = req.params;
-  const { returnDate } = req.body;
+  const { returnDate, purpose } = req.body;
 
   try {
     const equipment = await Equipment.findById(equipmentId);
@@ -54,6 +54,7 @@ const borrowEquipment = async (req, res) => {
     equipment.currentBorrower = userId;
     equipment.borrowDate = new Date();
     equipment.returnDate = returnDate;
+    equipment.purpose = purpose;
 
     // Không giảm `available` ngay tại đây
     await equipment.save();

@@ -24,6 +24,7 @@ const equipmentSchema = new mongoose.Schema(
       enum: ["good", "normal", "poor"],
       default: "good",
     },
+    purpose: { type: String },
   },
   { timestamps: true }
 );
