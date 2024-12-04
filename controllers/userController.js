@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const sendVerificationEmail = require("../utils/sendEmail");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 const RefreshToken = require("../models/RefreshToken");
 const {
   generateAccessToken,
@@ -19,6 +20,8 @@ const registerUser = async (req, res) => {
     if (user) {
       return res.status(400).json({ message: "User already exists" });
     }
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
 
     user = new User({
       username,
@@ -30,6 +33,7 @@ const registerUser = async (req, res) => {
 
     await user.save();
 
+    sendVerificationEmail(email, verificationToken);
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = await generateRefreshToken(user._id);
 

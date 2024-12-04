@@ -179,7 +179,7 @@ const deleteEquipment = async (req, res) => {
 
 const confirmReturnDevice = async (req, res) => {
   const { equipmentId } = req.params;
-  const { condition } = req.body; // Tình trạng thiết bị khi trả (good, normal, poor)
+  const { statusHealth } = req.body; // Tình trạng thiết bị khi trả (good, normal, poor)
 
   try {
     // Tìm thiết bị theo ID
@@ -203,7 +203,7 @@ const confirmReturnDevice = async (req, res) => {
     equipment.available += 1;
     equipment.currentBorrower = null;
     equipment.returnDate = new Date();
-    equipment.statusHealth = condition || "good"; // Lấy điều kiện từ client hoặc mặc định là "good"
+    equipment.statusHealth = statusHealth || "good"; // Lấy điều kiện từ client hoặc mặc định là "good"
     equipment.approvalStatus = "pending"; // Chuyển trạng thái chờ duyệt cho lần mượn tiếp theo
 
     await equipment.save();
