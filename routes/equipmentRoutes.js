@@ -22,5 +22,11 @@ router.get("/:id", equipmentController.getEquipment); // Xem thiết bị
 
 router.put("/:id", equipmentController.updateEquipment); // Cập nhật thiết bị (admin)
 router.delete("/:id", equipmentController.deleteEquipment); // Xóa thiết bị (admin)
+router.post(
+  "/equipment/:equipmentId/return",
+  auth,
+  authorize("admin"),
+  equipmentController.confirmReturnDevice
+);
 
 module.exports = router;

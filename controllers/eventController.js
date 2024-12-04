@@ -20,7 +20,8 @@ const getAllEvents = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 }) // Sắp xếp theo thời gian
-      .populate("registeredParticipants");
+      .populate("registeredParticipants")
+      .populate("host");
     if (totalEvents === 0) {
       return res.status(404).json({
         message: "No events found matching the search criteria",

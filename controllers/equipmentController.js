@@ -177,6 +177,47 @@ const deleteEquipment = async (req, res) => {
   }
 };
 
+const confirmReturnDevice = async (req, res) => {
+  const { equipmentId } = req.params;
+  const { condition } = req.body; // Tình trạng thiết bị khi trả (good, normal, poor)
+
+  try {
+    // Tìm thiết bị theo ID
+    const equipment = await Equipment.findById(equipmentId);
+    if (!equipment) {
+      return res.status(404).json({ message: "Equipment not found" });
+    }
+
+    // Kiểm tra trạng thái hiện tại của thiết bị
+    if (
+      equipment.status !== "in use" ||
+      equipment.approvalStatus !== "approved"
+    ) {
+      return res
+        .status(400)
+        .json({ message: "This device is not currently in use" });
+    }
+
+    // Cập nhật trạng thái thiết bị
+    equipment.status = "available";
+    equipment.available += 1;
+    equipment.currentBorrower = null;
+    equipment.returnDate = new Date();
+    equipment.statusHealth = condition || "good"; // Lấy điều kiện từ client hoặc mặc định là "good"
+    equipment.approvalStatus = "pending"; // Chuyển trạng thái chờ duyệt cho lần mượn tiếp theo
+
+    await equipment.save();
+
+    res.json({
+      message: "Device returned successfully",
+      equipment,
+    });
+  } catch (error) {
+    console.error("Error confirming device return:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   getEquipment,
   createEquipment,
@@ -185,4 +226,5 @@ module.exports = {
   borrowEquipment,
   getAllEquipment,
   approveBorrowRequest,
+  confirmReturnDevice,
 };
