@@ -19,14 +19,7 @@ router.delete(
 );
 router.get("/:id", eventController.getEvent); // Lấy thông tin sự kiện
 router.put("/:id", eventController.updateEvent); // Cập nhật sự kiện
-
-// // Endpoint để đăng ký làm chủ trì
-// router.post("/:eventId/register-host", eventController.registerHostRequest);
-
-// // Endpoint để duyệt yêu cầu làm chủ trì
-// router.patch(
-//   "/:eventId/approve-host/:memberId",
-//   eventController.approveHostRequest
-// );
+// xuat danh sach nguoi tham gia su kien ra file excel
+router.get("/export-event/:eventId", eventController.exportEventParticipants);
 
 module.exports = router;

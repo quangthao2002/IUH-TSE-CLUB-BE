@@ -1,4 +1,5 @@
 const Event = require("../models/Event");
+const XLSX = require("xlsx");
 
 const getAllEvents = async (req, res) => {
   try {
@@ -296,85 +297,105 @@ const getHostRequests = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+const slugify = (str) => {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\s\-_]/g, "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .toLowerCase();
+};
 
-// POST /api/events/:eventId/register-host
-// const registerHostRequest = async (req, res) => {
-//   const { eventId } = req.params;
-//   const userId = req.user._id; // ID thành viên hiện tại, được lấy từ token xác thực
+// API xuat thong tin user tham gia event ra file excel
+const addEventInfoToSheet = (worksheet, event) => {
+  // Thêm thông tin sự kiện vào sheet
+  XLSX.utils.sheet_add_aoa(
+    worksheet,
+    [
+      [`Sự kiện: ${event.eventName}`], // Tên sự kiện
+    ],
+    { origin: "A1" }
+  );
 
-//   try {
-//     const event = await Event.findById(eventId);
+  XLSX.utils.sheet_add_aoa(
+    worksheet,
+    [
+      ["Địa điểm:", event.location],
+      ["Mô tả:", event.description],
+      ["Ngày diễn ra:", new Date(event.eventDate).toLocaleString()],
+    ],
+    { origin: "A3" }
+  );
+};
 
-//     if (!event) {
-//       return res.status(404).json({ message: "Event not found" });
-//     }
+const addParticipantsToSheet = (worksheet, participants) => {
+  // Thêm tiêu đề cột
+  XLSX.utils.sheet_add_aoa(
+    worksheet,
+    [["STT", "Khoa", "Tên Sinh Viên", "Email"]],
+    { origin: "A7" }
+  );
 
-//     // Kiểm tra nếu thành viên đã là host hoặc đã có yêu cầu "pending"
-//     const alreadyHost = event.hosts.includes(userId);
-//     const pendingRequest = event.hostRequests.some(
-//       (request) =>
-//         request.memberId.toString() === userId && request.status === "pending"
-//     );
+  // Thêm danh sách người tham gia vào sheet
+  const data = participants.map((participant, index) => [
+    index + 1,
+    participant.level || "Unknown",
+    participant.username || "Unknown",
+    participant.email || "Unknown",
+  ]);
 
-//     if (alreadyHost) {
-//       return res
-//         .status(400)
-//         .json({ message: "You are already a host for this event" });
-//     }
-//     if (pendingRequest) {
-//       return res
-//         .status(400)
-//         .json({ message: "You already have a pending host request" });
-//     }
+  XLSX.utils.sheet_add_aoa(worksheet, data, { origin: "A8" });
+};
 
-//     // Thêm yêu cầu đăng ký làm chủ trì với trạng thái "pending"
-//     event.hostRequests.push({ memberId: userId, status: "pending" });
-//     await event.save();
+const exportEventParticipants = async (req, res) => {
+  const { eventId } = req.params;
 
-//     res
-//       .status(200)
-//       .json({ message: "Host request submitted, awaiting approval" });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+  try {
+    // Lấy thông tin sự kiện từ cơ sở dữ liệu
+    const event = await Event.findById(eventId)
+      .populate("registeredParticipants") // Giả sử có liên kết người đăng ký
+      .exec();
 
-// const approveHostRequest = async (req, res) => {
-//   const { eventId, memberId } = req.params;
-//   const { action } = req.body; // "approve" hoặc "reject"
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
 
-//   try {
-//     const event = await Event.findById(eventId);
+    // Tạo file Excel mới
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet([]); // Khởi tạo sheet trống
 
-//     if (!event) {
-//       return res.status(404).json({ message: "Event not found" });
-//     }
+    // Thêm thông tin sự kiện vào sheet
+    addEventInfoToSheet(worksheet, event);
 
-//     // Tìm yêu cầu đăng ký làm chủ trì của thành viên
-//     const hostRequest = event.hostRequests.find(
-//       (request) => request.memberId.toString() === memberId
-//     );
+    // Thêm danh sách người tham gia vào sheet
+    addParticipantsToSheet(worksheet, event.registeredParticipants);
 
-//     if (!hostRequest) {
-//       return res.status(404).json({ message: "Host request not found" });
-//     }
+    // Thêm sheet vào workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Participants");
 
-//     // Cập nhật trạng thái yêu cầu
-//     if (action === "approve") {
-//       hostRequest.status = "approved";
-//       event.hosts.push(memberId); // Thêm thành viên vào danh sách hosts
-//     } else if (action === "reject") {
-//       hostRequest.status = "rejected";
-//     } else {
-//       return res.status(400).json({ message: "Invalid action" });
-//     }
+    // Đảm bảo tên file không có ký tự đặc biệt
+    const sanitizedEventName = slugify(event.eventName, {
+      lower: true,
+      remove: /[*+~.()'"!:@]/g,
+    });
+    const fileName = `Event_${sanitizedEventName}.xlsx`;
+    const filePath = `./downloads/${fileName}`;
 
-//     await event.save();
-//     res.status(200).json({ message: `Host request ${action}d successfully` });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    // Ghi file Excel ra disk
+    XLSX.writeFile(workbook, filePath);
+
+    // Gửi file về phía client
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error("Error downloading the file", err);
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
 
 module.exports = {
   getEvent,
@@ -389,4 +410,5 @@ module.exports = {
   deleteEvent,
   getHostRequests,
   getAllEvents,
+  exportEventParticipants,
 };
