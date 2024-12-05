@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendVerificationEmail = async (email, token, username) => {
-  const verificationLink = `http://localhost:5000/api/auth/verify-email?token=${token}`;
+  const verificationLink = `${process.env.DOMAIN_ENDPOINT}/verify-email?token=${token}`;
 
   const mailOptions = {
     from: `"IUH CLUB" <${process.env.EMAIL_USER}>`,
@@ -73,7 +73,7 @@ const sendVerificationEmail = async (email, token, username) => {
           <div class="content">
             <h3>Hello ${username},</h3>
             <p>Please click the link below to verify your email address:</p>
-            <a class="button" href="${verificationLink}">Verify Email</a>
+            <a class="button" target="_blank" href="${verificationLink}">Verify Email</a>
           </div>
         </div>
       </body>
