@@ -4,13 +4,12 @@ const Event = require("../models/Event");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const sendVerificationEmail = require("../utils/sendEmail");
-const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const RefreshToken = require("../models/RefreshToken");
 const {
   generateAccessToken,
   generateRefreshToken,
-} = require("../controllers/authControlller");
+} = require("./authController");
 
 // Đăng ký người dùng mới
 const registerUser = async (req, res) => {
@@ -29,17 +28,19 @@ const registerUser = async (req, res) => {
       phone,
       level,
       password,
+      verificationToken,
+      verificationTokenExpires,
     });
 
     await user.save();
+    sendVerificationEmail(email, verificationToken, username);
 
-    sendVerificationEmail(email, verificationToken);
-    const accessToken = generateAccessToken(user._id, user.role);
-    const refreshToken = await generateRefreshToken(user._id);
+    // const accessToken = generateAccessToken(user._id, user.role);
+    // const refreshToken = await generateRefreshToken(user._id);
 
     res.json({
-      message: "Register success",
-      data: { accessToken, refreshToken, user },
+      message:
+        "Registration successful! Please verify your email to activate your account.",
     });
   } catch (error) {
     console.error(error);
@@ -54,6 +55,11 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
+    }
+    if (!user.isVerify) {
+      return res
+        .status(400)
+        .json({ message: "Please verify your email first" });
     }
 
     const isMatch = await user.matchPassword(password);

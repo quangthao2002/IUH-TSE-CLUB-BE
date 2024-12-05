@@ -30,9 +30,10 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    verifyToken: {
+    verificationToken: {
       type: String,
     },
+    verificationTokenExpires: { type: Date },
     birthDay: {
       type: Date,
     },
