@@ -380,17 +380,22 @@ const exportEventParticipants = async (req, res) => {
       remove: /[*+~.()'"!:@]/g,
     });
     const fileName = `Event_${sanitizedEventName}.xlsx`;
-    const filePath = `./downloads/${fileName}`;
 
-    // Ghi file Excel ra disk
-    XLSX.writeFile(workbook, filePath);
-
-    // Gửi file về phía client
-    res.download(filePath, fileName, (err) => {
-      if (err) {
-        console.error("Error downloading the file", err);
-      }
+    // Tạo buffer thay vì ghi file ra disk
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
     });
+
+    // Thiết lập header để tải file về máy user
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    // Gửi buffer về phía client
+    res.send(excelBuffer);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
