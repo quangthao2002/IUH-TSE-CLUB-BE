@@ -1,5 +1,7 @@
 const Event = require("../models/Event");
 const XLSX = require("xlsx");
+const User = require("../models/User");
+const { sendNotificationEmail } = require("../utils/sendEmail");
 
 const getAllEvents = async (req, res) => {
   try {
@@ -41,45 +43,6 @@ const getAllEvents = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Đăng ký tham gia sự kiện cho thành viên
-const registerForEvent = async (req, res) => {
-  const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
-  const { eventId } = req.params;
-
-  try {
-    const event = await Event.findById(eventId);
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    if (event.statusEvent === "completed") {
-      return res.status(400).json({ message: "Event has already completed" });
-    }
-
-    if (event.statusEvent === "cancelled") {
-      return res.status(400).json({ message: "Event has been cancelled" });
-    }
-
-    if (event.statusEvent !== "upcoming") {
-      return res
-        .status(400)
-        .json({ message: "Event is not open for registration" });
-    }
-    if (
-      event.maxParticipants &&
-      event.registeredParticipants.length >= event.maxParticipants
-    ) {
-      return res.status(400).json({ message: "Event is full" });
-    }
-
-    // Thêm thành viên vào danh sách tham gia
-    event.registeredParticipants.push(userId);
-    await event.save();
-    res.json({ message: "Registered for event", data: { event } });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -138,6 +101,23 @@ const createEvent = async (req, res) => {
     });
     await newEvent.save();
 
+    if (userRole != "admin") {
+      const user = await User.findById(userId);
+      // Gửi thông báo cho người dùng khi đăng kí sự kiện
+      const subject = "Event Registration";
+      const content = `
+      <p>Xin chào ${user.username},</p>
+      <p>Sự kiện "<strong>${eventName}</strong>" của bạn đã được tạo thành công.</p>
+      <p>Trạng thái hiện tại của sự kiện: <strong>${
+        statusRequest === "pending" ? "Chờ duyệt" : "Đã duyệt"
+      }</strong>.</p>
+      <p>Vui lòng chờ quản trị viên phê duyệt. Chúng tôi sẽ gửi email thông báo khi có cập nhật mới nhất.</p>
+      <p>Trân trọng,</p>
+      <p>Đội ngũ hỗ trợ</p>
+    `;
+      sendNotificationEmail(user.email, subject, content);
+    }
+
     res
       .status(201)
       .json({ message: "Event created successfully", event: newEvent });
@@ -176,6 +156,45 @@ const updateEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
     res.json({ message: "Event updated", event: updatedEvent });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Đăng ký tham gia sự kiện cho thành viên
+const registerForEvent = async (req, res) => {
+  const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
+  const { eventId } = req.params;
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    if (event.statusEvent === "completed") {
+      return res.status(400).json({ message: "Event has already completed" });
+    }
+
+    if (event.statusEvent === "cancelled") {
+      return res.status(400).json({ message: "Event has been cancelled" });
+    }
+
+    if (event.statusEvent !== "upcoming") {
+      return res
+        .status(400)
+        .json({ message: "Event is not open for registration" });
+    }
+    if (
+      event.maxParticipants &&
+      event.registeredParticipants.length >= event.maxParticipants
+    ) {
+      return res.status(400).json({ message: "Event is full" });
+    }
+
+    // Thêm thành viên vào danh sách tham gia
+    event.registeredParticipants.push(userId);
+    await event.save();
+    res.json({ message: "Registered for event", data: { event } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -246,6 +265,28 @@ const approveEventRequest = async (req, res) => {
     }
 
     await event.save();
+
+    // Gửi email thông báo cho host
+    const user = await User.findById(event.host);
+    const subject = `Event Request ${
+      action === "approve" ? "Approved" : "Rejected"
+    }`;
+    const content = `
+    <p>Xin chào ${user.username},</p>
+    <p>Sự kiện "<strong>${event.eventName}</strong>" của bạn đã ${
+      action === "approve" ? "được duyệt" : "bị từ chối"
+    }.</p>
+    ${
+      action === "approve"
+        ? `<p>Trạng thái sự kiện hiện tại: <strong>${event.statusEvent}</strong>.</p>`
+        : "<p>Vui lòng kiểm tra và chỉnh sửa lại nội dung nếu cần trước khi gửi lại yêu cầu phê duyệt.</p>"
+    }
+    <p>Trân trọng,</p>
+    <p>Đội ngũ hỗ trợ</p>
+  `;
+    if (user && user.email) {
+      sendNotificationEmail(user.email, subject, content);
+    }
 
     res.json({ message: `Event ${action}d successfully`, event });
   } catch (error) {

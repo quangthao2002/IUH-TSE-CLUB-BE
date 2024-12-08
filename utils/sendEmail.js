@@ -90,4 +90,22 @@ const sendVerificationEmail = async (email, token, username) => {
   }
 };
 
-module.exports = sendVerificationEmail;
+const sendNotificationEmail = async (email, subject, content) => {
+  try {
+    // Cấu hình nội dung email
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Địa chỉ email gửi
+      to: email, // Email người nhận
+      subject, // Chủ đề email
+      html: content, // Nội dung email (HTML format)
+    };
+
+    // Gửi email
+    await transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${email}`);
+  } catch (error) {
+    console.error("Failed to send email:", error);
+  }
+};
+
+module.exports = { sendVerificationEmail, sendNotificationEmail };
