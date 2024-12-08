@@ -120,6 +120,10 @@ const createEvent = async (req, res) => {
 
     const statusRequest = userRole === "admin" ? "approved" : "pending";
     const statusEvent = userRole === "admin" ? "upcoming" : undefined;
+
+    // Lấy URL file từ multer-S3 (nếu có)
+    const planFile = req.file ? req.file.location : null;
+
     const newEvent = new Event({
       eventName,
       location,
@@ -129,6 +133,7 @@ const createEvent = async (req, res) => {
       maxParticipants,
       host: userId,
       statusRequest,
+      plant: planFile,
       ...(statusEvent && { statusEvent }),
     });
     await newEvent.save();

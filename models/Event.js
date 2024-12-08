@@ -22,6 +22,7 @@ const eventSchema = new mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     ],
     host: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    plant: { type: String },
   },
   { timestamps: true }
 );

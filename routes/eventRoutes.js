@@ -2,11 +2,17 @@ const express = require("express");
 const router = express.Router();
 const eventController = require("../controllers/eventController");
 const { auth, authorize } = require("../middleware/auth");
+const upload = require("../utils/upload");
 
 // /api/events/status?statusEvent=upcoming
-router.get("", eventController.getAllEvents); // Lấy danh sách sự kiện
+router.get("/", eventController.getAllEvents); // Lấy danh sách sự kiện
 router.get("/status", eventController.getEventsByStatus);
-router.post("/create", auth, eventController.createEvent); // Tạo sự kiện mới
+router.post(
+  "/create",
+  auth,
+  upload.single("plant"),
+  eventController.createEvent
+); // Tạo sự kiện mới
 router.post("/approve", eventController.approveEventRequest); // Duyệt hoặc từ chối yêu cầu sự kiện
 router.get("/host-requests/:eventId", eventController.getHostRequests);
 router.post("/register/:eventId", auth, eventController.registerForEvent); // Đăng ký tham gia sự kiện
