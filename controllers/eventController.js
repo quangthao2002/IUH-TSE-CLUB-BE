@@ -164,13 +164,20 @@ const updateEvent = async (req, res) => {
 // Đăng ký tham gia sự kiện cho thành viên
 const registerForEvent = async (req, res) => {
   const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
+  console.log(userId);
   const { eventId } = req.params;
-
   try {
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
+    // kieu tra user da dang ky chua
+    if (event.registeredParticipants.includes(userId)) {
+      return res
+        .status(400)
+        .json({ message: "You have already registered for this event" });
+    }
+
     if (event.statusEvent === "completed") {
       return res.status(400).json({ message: "Event has already completed" });
     }
@@ -194,6 +201,79 @@ const registerForEvent = async (req, res) => {
     // Thêm thành viên vào danh sách tham gia
     event.registeredParticipants.push(userId);
     await event.save();
+    //send mail ve cho member
+    const user = await User.findById(userId);
+    const qrCodeLink = `https://checkin-qrcode.vercel.app/`;
+    const eventDate = new Date(event.eventDate);
+    const options = {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    };
+    const formattedDate = eventDate.toLocaleDateString("vi-VN", options);
+    const subject = "Event Registration";
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Email</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #007BFF; padding: 20px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Bạn đã đăng ký thành công!</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 20px;">
+              <h2 style="color: #333333; font-size: 20px; margin: 0 0 10px;">${event.eventName}</h2>
+              <p style="color: #666666; font-size: 16px; margin: 0 0 20px;">
+                Bạn đã đăng ký thành công sự kiện "<strong>${event.eventName}</strong>" do câu lạc bộ tổ chức.
+              </p>
+              <p style="color: #333333; font-size: 16px; margin: 0 0 10px;">
+                <strong>Thời gian:</strong> ${formattedDate} lúc ${event.startTime}
+              </p>
+              <p style="color: #333333; font-size: 16px; margin: 0 0 10px;">
+                <strong>Địa điểm:</strong> ${event.location}
+              </p>
+
+              <!-- Button -->
+              <div style="text-align: center; margin-top: 20px;">
+                <a href="${qrCodeLink}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: #ffffff; background-color: #007BFF; text-decoration: none; border-radius: 4px;">
+                  Xem mã QR
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f4f4f4; text-align: center; padding: 10px; font-size: 12px; color: #999999;">
+              <p>IUH IT Club</p>
+              <p>© 2024 Le Dat. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+    if (user && user.email) {
+      sendNotificationEmail(user.email, subject, htmlContent);
+    }
+
     res.json({ message: "Registered for event", data: { event } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -448,6 +528,64 @@ const exportEventParticipants = async (req, res) => {
   }
 };
 
+const checkInEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params; // Lấy ID của sự kiện
+    const { userId } = req.body; // ID người dùng cần check-in
+
+    // Tìm sự kiện
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Kiểm tra nếu người dùng đã check-in trước đó
+    const alreadyCheckedIn = event.checkInList.some(
+      // some là hàm kiểm tra điều kiện cho từng phần tử trong mảng
+      (entry) => entry.user.toString() === userId // So sánh ID người dùng
+    );
+
+    if (alreadyCheckedIn) {
+      return res.status(400).json({ message: "User already checked in" });
+    }
+
+    // Thêm người dùng vào danh sách check-in
+    event.checkInList.push({
+      user: userId,
+      checkInTime: new Date(),
+    });
+
+    await event.save(); // Lưu sự kiện
+
+    return res.status(200).json({ message: "Check-in successful", event });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+};
+// get list user check in event
+const getCheckInList = async (req, res) => {
+  try {
+    const { eventId } = req.params; // Lấy ID của sự kiện
+
+    // Tìm sự kiện
+    const event = await Event.findById(eventId).populate(
+      "checkInList.user",
+      "username email phone level role forte"
+    );
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Check-in list", data: event.checkInList });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
 module.exports = {
   getEvent,
   createEvent,
@@ -462,4 +600,6 @@ module.exports = {
   getHostRequests,
   getAllEvents,
   exportEventParticipants,
+  checkInEvent,
+  getCheckInList,
 };

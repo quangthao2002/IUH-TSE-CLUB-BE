@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Event = require("../models/Event");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
-const sendVerificationEmail = require("../utils/sendEmail");
+const { sendVerificationEmail } = require("../utils/sendEmail");
 const crypto = require("crypto");
 const RefreshToken = require("../models/RefreshToken");
 const {

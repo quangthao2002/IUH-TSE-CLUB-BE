@@ -23,6 +23,12 @@ const eventSchema = new mongoose.Schema(
     ],
     host: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     plant: { type: String },
+    checkInList: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        checkInTime: { type: Date },
+      },
+    ],
   },
   { timestamps: true }
 );

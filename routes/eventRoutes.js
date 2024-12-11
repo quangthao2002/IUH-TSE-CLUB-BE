@@ -27,5 +27,7 @@ router.get("/:id", eventController.getEvent); // Lấy thông tin sự kiện
 router.put("/:id", eventController.updateEvent); // Cập nhật sự kiện
 // xuat danh sach nguoi tham gia su kien ra file excel
 router.get("/export-event/:eventId", eventController.exportEventParticipants);
+router.post("/:eventId/check-in", eventController.checkInEvent); // Check-in sự kiện
+router.get("/check-in-list/:eventId", eventController.getCheckInList); // Lấy danh sách check-in sự kiện
 
 module.exports = router;
