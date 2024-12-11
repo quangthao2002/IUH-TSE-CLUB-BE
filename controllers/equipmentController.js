@@ -1,4 +1,6 @@
 const Equipment = require("../models/Equipment");
+const { sendNotificationEmail } = require("../utils/sendEmail");
+const User = require("../models/User");
 
 const getAllEquipment = async (req, res) => {
   try {
@@ -33,6 +35,30 @@ const getAllEquipment = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+const sendBorrowRequestEmail = async (user, equipment) => {
+  const subject = "Borrow Request Submitted";
+  const content = `
+    <p>Xin chào ${user.username},</p>
+    <p>Yêu cầu mượn thiết bị của bạn cho "<strong>${equipment.name}</strong>" đã được gửi thành công. Vui lòng chờ phê duyệt.</p>
+    <p><strong>Thông tin chi tiết thiết bị:</strong></p>
+    <ul>
+      <li><strong>Tên thiết bị:</strong> ${equipment.name}</li>
+      <li><strong>Loại thiết bị:</strong> ${equipment.type}</li>
+      <li><strong>Số lượng:</strong> ${equipment.quantity}</li>
+      <li><strong>Trạng thái:</strong> ${equipment.status}</li>
+    </ul>
+    <p>Chúng tôi sẽ thông báo cho bạn khi yêu cầu của bạn được phê duyệt hoặc từ chối.</p>
+    <p>Trân trọng,</p>
+    <p>Đội ngũ quản lý thiết bị</p>
+  `;
+
+  try {
+    await sendNotificationEmail(user.email, subject, content);
+    console.log("Borrow request email sent successfully.");
+  } catch (error) {
+    console.error("Error sending borrow request email:", error);
+  }
+};
 
 const borrowEquipment = async (req, res) => {
   const userId = req.user.id; // Giả định userId lấy từ token đã xác thực
@@ -58,6 +84,12 @@ const borrowEquipment = async (req, res) => {
 
     // Không giảm `available` ngay tại đây
     await equipment.save();
+
+    // Gửi email thông báo cho user muon thiết bị
+    const user = await User.findById(userId);
+    if (user) {
+      sendBorrowRequestEmail(user, equipment);
+    }
 
     res.json({ message: "Borrow request submitted", data: { equipment } });
   } catch (error) {
@@ -91,15 +123,51 @@ const approveBorrowRequest = async (req, res) => {
       equipment.approvalStatus = "approved";
       equipment.status = "in use";
       equipment.available -= 1; // Giảm số lượng có sẵn
+      // Gửi email thông báo phê duyệt
+      subject = "Borrow Request Approved";
+      content = `
+        <p>Xin chào ${equipment.currentBorrower.username},</p>
+        <p>Yêu cầu mượn thiết bị của bạn cho "<strong>${equipment.name}</strong>" đã được phê duyệt.</p>
+        <p><strong>Thông tin chi tiết thiết bị:</strong></p>
+        <ul>
+          <li><strong>Tên thiết bị:</strong> ${equipment.name}</li>
+          <li><strong>Loại thiết bị:</strong> ${equipment.type}</li>
+          <li><strong>Số lượng:</strong> ${equipment.quantity}</li>
+          <li><strong>Trạng thái:</strong> ${equipment.status}</li>
+        </ul>
+        <p>Vui lòng liên hệ với quản lý để nhận thiết bị.</p>
+        <p>Trân trọng,</p>
+        <p>Đội ngũ quản lý thiết bị</p>
+      `;
     } else {
       // Từ chối yêu cầu
       equipment.approvalStatus = "rejected";
       equipment.currentBorrower = null; // Xóa người mượn
       equipment.status = "available"; // Trả thiết bị về trạng thái ban đầu
+      // Gửi email thông báo từ chối
+      subject = "Borrow Request Rejected";
+      content = `
+      <p>Xin chào ${equipment.currentBorrower.username},</p>
+      <p>Yêu cầu mượn thiết bị của bạn cho "<strong>${equipment.name}</strong>" đã bị từ chối.</p>
+      <p><strong>Thông tin chi tiết thiết bị:</strong></p>
+      <ul>
+        <li><strong>Tên thiết bị:</strong> ${equipment.name}</li>
+        <li><strong>Loại thiết bị:</strong> ${equipment.type}</li>
+        <li><strong>Số lượng:</strong> ${equipment.quantity}</li>
+        <li><strong>Trạng thái:</strong> ${equipment.status}</li>
+      </ul>
+      <p>Vui lòng liên hệ với quản lý để biết thêm chi tiết.</p>
+      <p>Trân trọng,</p>
+      <p>Đội ngũ quản lý thiết bị</p>
+    `;
     }
 
     await equipment.save();
-
+    const user = await User.findById(equipment.currentBorrower);
+    // Gửi email thông báo cho user
+    if (equipment.currentBorrower) {
+      await sendNotificationEmail(user.email, subject, content);
+    }
     res.json({
       message: `Borrow request ${action}d successfully`,
       data: { equipment },
