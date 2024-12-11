@@ -114,7 +114,7 @@ const approveBorrowRequest = async (req, res) => {
         message: "Borrow request is not pending or already processed",
       });
     }
-
+    const user = await User.findById(equipment.currentBorrower);
     if (action === "approve") {
       // Xác nhận phê duyệt
       if (equipment.available <= 0) {
@@ -126,7 +126,7 @@ const approveBorrowRequest = async (req, res) => {
       // Gửi email thông báo phê duyệt
       subject = "Borrow Request Approved";
       content = `
-        <p>Xin chào ${equipment.currentBorrower.username},</p>
+        <p>Xin chào ${user.username},</p>
         <p>Yêu cầu mượn thiết bị của bạn cho "<strong>${equipment.name}</strong>" đã được phê duyệt.</p>
         <p><strong>Thông tin chi tiết thiết bị:</strong></p>
         <ul>
@@ -163,7 +163,6 @@ const approveBorrowRequest = async (req, res) => {
     }
 
     await equipment.save();
-    const user = await User.findById(equipment.currentBorrower);
     // Gửi email thông báo cho user
     if (equipment.currentBorrower) {
       await sendNotificationEmail(user.email, subject, content);
