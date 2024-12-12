@@ -94,7 +94,7 @@ const sendVerificationEmail = async (email, token, username) => {
             </p>
             <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
             <p>Cảm ơn bạn đã tham gia cùng chúng tôi!</p>
-            <p>Trân trọng,<br>Đội ngũ IUH TSE Club</p>
+            <p>Trân trọng,<br><a href="https://ledat-portfolio.vercel.app" target="_blank">Đội ngũ IUH TSE Club</a></p>
           </div>
           <div class="footer">
             <p>&copy; 2024 IUH TSE Club. Mọi quyền được bảo lưu.</p>
