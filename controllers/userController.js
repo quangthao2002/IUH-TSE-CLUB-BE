@@ -124,7 +124,9 @@ const getMemberById = async (req, res) => {
 
 const getAllMembers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    // nêu user chuwa verify thì không hiển thị
+    const users = await User.find({ isVerify: true }).select("-password");
+
     res.json({ message: "Get all members success", data: { users } });
   } catch (error) {
     console.log(error);
