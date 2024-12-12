@@ -203,7 +203,7 @@ const registerForEvent = async (req, res) => {
     await event.save();
     //send mail ve cho member
     const user = await User.findById(userId);
-    const qrCodeLink = `https://checkin-qrcode.vercel.app/`;
+    const qrCodeLink = `${process.env.CHECK_IN_DOMAIN_ENDPOINT}/ticket/${event._id}?id=${userId}`;
     const eventDate = new Date(event.eventDate);
     const options = {
       weekday: "long",
@@ -250,7 +250,7 @@ const registerForEvent = async (req, res) => {
               <!-- Button -->
               <div style="text-align: center; margin-top: 20px;">
                 <a href="${qrCodeLink}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: #ffffff; background-color: #007BFF; text-decoration: none; border-radius: 4px;">
-                  Xem mã QR
+                  Xem vé tham dự
                 </a>
               </div>
             </td>
@@ -260,7 +260,7 @@ const registerForEvent = async (req, res) => {
           <tr>
             <td style="background-color: #f4f4f4; text-align: center; padding: 10px; font-size: 12px; color: #999999;">
               <p>IUH IT Club</p>
-              <p>© 2024 Le Dat. All rights reserved.</p>
+              <p><a href="https://ledat-portfolio.vercel.app" target="_blank">© 2024 Le Dat. All rights reserved.</a></p>
             </td>
           </tr>
         </table>
