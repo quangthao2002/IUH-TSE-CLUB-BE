@@ -585,6 +585,42 @@ const getCheckInList = async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error });
   }
 };
+const getEventWithUser = async (req, res) => {
+  const { userId, eventId } = req.params;
+
+  try {
+    const event = await Event.findById(eventId).populate({
+      path: "registeredParticipants",
+      select: "username email phone level role",
+    });
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const user = await User.findById(userId, "username email phone level role");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Kiểm tra xem người dùng có đăng ký tham gia sự kiện hay không
+    const isRegistered = event.registeredParticipants.some(
+      (participant) => participant._id.toString() === userId
+    );
+    if (!isRegistered) {
+      return res
+        .status(400)
+        .json({ message: "User is not registered for this event" });
+    }
+
+    res.json({
+      message: "Event and user details fetched successfully",
+      event,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 module.exports = {
   getEvent,
@@ -602,4 +638,5 @@ module.exports = {
   exportEventParticipants,
   checkInEvent,
   getCheckInList,
+  getEventWithUser,
 };
