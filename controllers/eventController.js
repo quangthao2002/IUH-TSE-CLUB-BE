@@ -614,8 +614,7 @@ const getEventWithUser = async (req, res) => {
 
     res.json({
       message: "Event and user details fetched successfully",
-      event,
-      user,
+      data: { event, user },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
