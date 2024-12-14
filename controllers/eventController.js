@@ -583,7 +583,7 @@ const getCheckInList = async (req, res) => {
   try {
     const { eventId } = req.params; // Lấy ID của sự kiện
 
-    // Tìm sự kiện
+    // Tìm sự kiện và populate thông tin người dùng trong checkInList
     const event = await Event.findById(eventId).populate(
       "checkInList.user",
       "username email phone level role forte"
@@ -593,9 +593,12 @@ const getCheckInList = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
+    // Lấy danh sách người dùng từ checkInList
+    const user2 = event.checkInList.map((entry) => entry.user);
+
     return res
       .status(200)
-      .json({ message: "Check-in list", data: event.checkInList });
+      .json({ message: "Check-in list", data: { user: user2 } });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
