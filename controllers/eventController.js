@@ -534,7 +534,10 @@ const checkInEvent = async (req, res) => {
     const { userId } = req.body; // ID người dùng cần check-in
 
     // Tìm sự kiện
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId).populate(
+      "checkInList.user",
+      "username email level"
+    );
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
@@ -542,8 +545,7 @@ const checkInEvent = async (req, res) => {
 
     // Kiểm tra nếu người dùng đã check-in trước đó
     const alreadyCheckedIn = event.checkInList.some(
-      // some là hàm kiểm tra điều kiện cho từng phần tử trong mảng
-      (entry) => entry.user.toString() === userId // So sánh ID người dùng
+      (entry) => entry.user._id.toString() === userId
     );
 
     if (alreadyCheckedIn) {
@@ -558,11 +560,24 @@ const checkInEvent = async (req, res) => {
 
     await event.save(); // Lưu sự kiện
 
-    return res.status(200).json({ message: "Check-in successful", event });
+    // Tìm người dùng vừa check-in
+    const user = await User.findById(userId).select(
+      "username email level role phone"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "Check-in successful",
+      data: { event, user },
+    });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
 };
+
 // get list user check in event
 const getCheckInList = async (req, res) => {
   try {
